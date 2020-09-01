@@ -1,0 +1,3 @@
+var language = "lox";
+print language;
+print 1 + 2;

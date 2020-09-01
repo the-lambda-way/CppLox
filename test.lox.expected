@@ -1,0 +1,14 @@
+VAR var empty
+IDENTIFIER language empty
+EQUAL = empty
+STRING "lox" lox
+SEMICOLON ; empty
+PRINT print empty
+IDENTIFIER language empty
+SEMICOLON ; empty
+PRINT print empty
+NUMBER 1 1.000000
+PLUS + empty
+NUMBER 2 2.000000
+SEMICOLON ; empty
+END_OF_FILE  empty
