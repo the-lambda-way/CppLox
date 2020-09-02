@@ -126,7 +126,7 @@ private:
                while (isDigit(peek()))     advance();
           }
 
-          addToken(TokenType::NUMBER, std::stod(to_string(source.substr(start, current - start))));
+          addToken(TokenType::NUMBER, std::stod(toString(source.substr(start, current - start))));
      }
 
 

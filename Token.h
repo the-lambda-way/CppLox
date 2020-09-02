@@ -28,7 +28,7 @@ struct Token
 
 std::string toString (std::monostate)         { return "empty"; }
 std::string toString (std::string_view s)     { return {s.data(), s.length()}; }
-std::string toString (double n)               { return std::toString(n); }
+std::string toString (double n)               { return std::to_string(n); }
 
 std::string toString (const TokenVal& v)
 {

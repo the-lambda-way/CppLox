@@ -71,7 +71,7 @@ namespace TokenTypeMembers
 }
 
 
-std::string to_string (TokenType type)
+std::string toString (TokenType type)
 {
      const std::string strings[] =
      {
