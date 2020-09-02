@@ -26,16 +26,16 @@ struct Token
 };
 
 
-std::string to_string (std::monostate)         { return "empty"; }
-std::string to_string (std::string_view s)     { return {s.data(), s.length()}; }
-std::string to_string (double n)               { return std::to_string(n); }
+std::string toString (std::monostate)         { return "empty"; }
+std::string toString (std::string_view s)     { return {s.data(), s.length()}; }
+std::string toString (double n)               { return std::toString(n); }
 
-std::string to_string (const TokenVal& v)
+std::string toString (const TokenVal& v)
 {
-     return std::visit([] (auto&& arg) { return to_string(std::forward<decltype(arg)>(arg)); }, v);
+     return std::visit([] (auto&& arg) { return toString(std::forward<decltype(arg)>(arg)); }, v);
 }
 
-std::string to_string (const Token& t)
+std::string toString (const Token& t)
 {
-     return to_string(t.type) + " " + to_string(t.lexeme) + " " +  to_string(t.literal);
+     return toString(t.type) + " " + toString(t.lexeme) + " " +  toString(t.literal);
 }
