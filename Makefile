@@ -10,7 +10,7 @@ DEPS     := Scanner.h Token.h TokenType.h
 
 
 lox: Lox.cpp $(DEPS)
-	@$(COMPILE) -O3 $< -o $@
+	@$(COMPILE) $< -o $@
 
 
 .PHONY: test
@@ -21,6 +21,11 @@ test: lox test.lox test.lox.expected
 
 test.lox:
 test.lox.expected:
+
+
+generate_ast: GenerateAst.cpp
+	@$(COMPILE) $< -o $@
+
 
 
 .PHONY: clean
