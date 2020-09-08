@@ -33,4 +33,4 @@ ast_printer: AstPrinter.cpp
 
 .PHONY: clean
 clean:
-	rm -f lox generate_ast
+	rm -f lox generate_ast ast_printer
