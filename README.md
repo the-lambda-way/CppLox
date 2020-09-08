@@ -9,7 +9,13 @@ The conventions of the book are followed closely, departing only where standard,
 
 # Building
 
-Run `make` or `make lox` to compile the program. Run `make test` to pass test.lox as input to the program and diff with test.lox.expected.
+Run `make` or `make lox` to compile the program.
+
+Run `make test` to pass test.lox as input to the program and diff with test.lox.expected.
+
+Run `make generate_ast` to compile GenerateAst.cpp.
+
+Run `make ast_printer` to compile AstPrinter.cpp.
 
 
 # Current Progress
