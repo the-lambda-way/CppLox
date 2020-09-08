@@ -94,17 +94,19 @@ void defineType (std::ofstream& writer, std::string_view baseName,
      }
 
      writer << "\n"
-            << "     {}\n\n";
+            << "     {}\n";
 
      // Visitor pattern.
-     writer << "     std::any accept (const Visitor* visitor) const override\n"
+     writer << "\n"
+               "     std::any accept (const Visitor* visitor) const override\n"
                "     {\n"
                "          return visitor->visit" << className << baseName << "(this);\n"
-               "     }\n\n";
+               "     }\n";
 
      // Fields.
+     writer << "\n";
      for (std::string_view field : fields)
-          writer << "     const " << trim(field) << ";\n";
+          writer << "     const " << field << ";\n";
 
      writer << "};\n\n";
 }
@@ -117,9 +119,7 @@ void defineAst (std::string_view outputDir, std::string_view baseName, const std
      std::ofstream writer {path};
 
      writer << "#include <any>\n"
-               "#include <vector>\n"
                "#include \"Token.h\"\n"
-               "\n"
                "\n";
 
      // Forward declare the AST classes.
@@ -133,15 +133,16 @@ void defineAst (std::string_view outputDir, std::string_view baseName, const std
 
      defineVisitor(writer, baseName, types);
 
-     // Since C++ does not have generics, virtual methods must be monomorphic. That means templates are out -- at least
-     // if we don't want to over complicate things. An alternative is to use std::any, which holds values of any type in
-     // a type-safe way. Member functions of the base class and the Visitor class will return std::any, and the class
-     // implementing Visitor is required to cast the return value to the expected type inside its member functions.
      writer << "\n"
                "struct " << baseName << "\n"
                "{\n"
 
                // The base accept() method.
+               // C++ does not allow virtual methods to be templated. That means multiple accept signatures are out --
+               // at least if we don't want to over complicate things. An alternative is to use std::any, which holds
+               // values of any type in a type-safe way. Member functions of the base class and the Visitor class will
+               // return std::any, and the class implementing Visitor is required to cast the return value to the
+               // expected type inside its member functions.
                "     virtual std::any accept (const Visitor* visitor) const = 0;\n"
                "};\n\n";
 
