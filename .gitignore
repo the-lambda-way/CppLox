@@ -2,3 +2,4 @@
 CppLox.code-workspace
 lox
 generate_ast
+ast_printer

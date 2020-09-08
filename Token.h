@@ -7,12 +7,12 @@
 
 // Whereas Java typically uses reference semantics, modern C++ typically favors value semantics. To get value-based
 // polymorphic objects in C++, we can use a union or a variant. We could also use heterogeneous templated objects
-// instead, but using a homogenous object simplifies the handling of tokens.
+// instead, but using a homogenous object simplifies the handling of tokens and syntax trees.
 
 
-using TokenVal = std::variant<std::monostate,       // valueless tokens
-                              std::string_view,     // identifier, string, error
-                              double>;              // number
+using LiteralVal = std::variant<std::monostate,       // nil, valueless tokens
+                                std::string_view,     // identifier, string, error
+                                double>;              // number
 
 auto empty = std::monostate {};
 
@@ -21,16 +21,16 @@ struct Token
 {
      const TokenType        type;
      const std::string_view lexeme;
-     const TokenVal         literal;
+     const LiteralVal       literal;
      const int              line;
 };
 
 
-std::string toString (std::monostate)         { return "empty"; }
-std::string toString (std::string_view s)     { return {s.data(), s.length()}; }
+std::string toString (std::monostate)         { return "nil"; }
+std::string toString (std::string_view s)     { return {s.data()}; }
 std::string toString (double n)               { return std::to_string(n); }
 
-std::string toString (const TokenVal& v)
+std::string toString (const LiteralVal& v)
 {
      return std::visit([] (auto&& arg) { return toString(std::forward<decltype(arg)>(arg)); }, v);
 }

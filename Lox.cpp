@@ -1,7 +1,5 @@
 // An implementation of the Lox language in C++
-// Implemented through chapter 4
-// http://www.craftinginterpreters.com/scanning.html
-// http://www.craftinginterpreters.com/representing-code.html
+// http://www.craftinginterpreters.com
 // https://github.com/munificent/craftinginterpreters/tree/master/java/com/craftinginterpreters/lox
 
 
@@ -89,7 +87,7 @@ void runFile (const char* path)
 
 int main (int argc, char* argv[])
 {
-     if (argc >  2)
+     if (argc > 2)
      {
           std::cout << "Usage: lox [script]";
           std::exit(64);

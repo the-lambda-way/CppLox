@@ -27,7 +27,10 @@ generate_ast: GenerateAst.cpp
 	@$(COMPILE) $< -o $@
 
 
+ast_printer: AstPrinter.cpp
+	@$(COMPILE) $< -o $@
+
 
 .PHONY: clean
 clean:
-	rm -f lox
+	rm -f lox generate_ast
