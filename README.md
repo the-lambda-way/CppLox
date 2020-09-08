@@ -14,7 +14,7 @@ Run `make` or `make lox` to compile the program. Run `make test` to pass test.lo
 
 # Current Progress
 
-Finished through Chapter 4.
+Finished through Chapter 5.
 
 
 # License
