@@ -29,18 +29,19 @@ void error (int line, std::string_view message)
 }
 
 
-void error (Token token, std::string message)
+void error (Token token, std::string_view message)
 {
      if (token.type == TokenType::END_OF_FILE)     report(token.line, " at end", message);
      else                                          report(token.line, " at '" + toString(token.lexeme) + "'", message);
 }
 
 
-void run (std::string source)
+void run (std::string_view source)
 {
      Scanner scanner {source};
      std::vector<Token> tokens = scanner.scanTokens();
 
+     // For now, just print the tokens.
      for (auto&& token : tokens)
           std::cout << toString(token) << "\n";
 }
@@ -80,7 +81,10 @@ std::string readFile (const char* path)
 
 void runFile (const char* path)
 {
-     run(readFile(path));
+     std::string contents = readFile(path);
+     run(contents);
+
+     // Indicate an error in the exit code.
      if (hadError)     std::exit(65);
 }
 
