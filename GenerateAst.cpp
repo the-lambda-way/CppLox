@@ -96,6 +96,23 @@ void defineType (std::ofstream& writer, std::string_view baseName,
      writer << "\n"
             << "     {}\n";
 
+     // Destructor.
+     writer << "\n"
+            << "     ~" << className << " ()\n"
+            << "     {\n";
+
+     for (std::string_view field : fields)
+     {
+          std::string_view type = trim(split(field, " ")[0]);
+
+          if (type.back() != '*')    continue;
+
+          std::string_view name = trim(split(field, " ")[1]);
+          writer << "          delete " << name << ";\n";
+     }
+
+     writer << "     }\n";
+
      // Visitor pattern.
      writer << "\n"
                "     std::any accept (const Visitor* visitor) const override\n"
@@ -131,10 +148,12 @@ void defineAst (std::string_view outputDir, std::string_view baseName, const std
           writer << "struct " << className << ";\n";
      }
 
+     // Visitor.
      writer << "\n";
 
      defineVisitor(writer, baseName, types);
 
+     // The base class.
      writer << "\n"
                "struct " << baseName << "\n"
                "{\n"
@@ -146,6 +165,7 @@ void defineAst (std::string_view outputDir, std::string_view baseName, const std
                // return std::any, and the class implementing Visitor is required to cast the return value to the
                // expected type inside its member functions.
                "     virtual std::any accept (const Visitor* visitor) const = 0;\n"
+               "     virtual ~" << baseName << " () {}\n"
                "};\n\n";
 
      // The AST classes.

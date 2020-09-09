@@ -19,6 +19,7 @@ struct Visitor
 struct Expr
 {
      virtual std::any accept (const Visitor* visitor) const = 0;
+     virtual ~Expr () {}
 };
 
 struct Binary : Expr
@@ -26,6 +27,12 @@ struct Binary : Expr
      Binary (Expr* left, Token op, Expr* right)
           : left {left}, op {op}, right {right}
      {}
+
+     ~Binary ()
+     {
+          delete left;
+          delete right;
+     }
 
      std::any accept (const Visitor* visitor) const override
      {
@@ -43,6 +50,11 @@ struct Grouping : Expr
           : expression {expression}
      {}
 
+     ~Grouping ()
+     {
+          delete expression;
+     }
+
      std::any accept (const Visitor* visitor) const override
      {
           return visitor->visitGroupingExpr(this);
@@ -57,6 +69,10 @@ struct Literal : Expr
           : value {value}
      {}
 
+     ~Literal ()
+     {
+     }
+
      std::any accept (const Visitor* visitor) const override
      {
           return visitor->visitLiteralExpr(this);
@@ -70,6 +86,11 @@ struct Unary : Expr
      Unary (Token op, Expr* right)
           : op {op}, right {right}
      {}
+
+     ~Unary ()
+     {
+          delete right;
+     }
 
      std::any accept (const Visitor* visitor) const override
      {
