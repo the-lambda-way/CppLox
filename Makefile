@@ -6,10 +6,8 @@ INCLUDES := -I/usr/local/gcc-10.2.0/include/c++/10.2.0/
 
 COMPILE  := $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(INCLUDES)
 
-DEPS     := Scanner.h Token.h TokenType.h
 
-
-lox: Lox.cpp $(DEPS)
+lox: Lox.cpp Scanner.h TokenType.h Token.h
 	@$(COMPILE) $< -o $@
 
 
@@ -27,7 +25,11 @@ generate_ast: GenerateAst.cpp
 	@$(COMPILE) $< -o $@
 
 
-ast_printer: AstPrinter.cpp
+Expr.h: generate_ast
+	@./generate_ast .
+
+
+ast_printer: AstPrinter.cpp Expr.h
 	@$(COMPILE) $< -o $@
 
 

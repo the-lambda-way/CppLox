@@ -118,7 +118,9 @@ void defineAst (std::string_view outputDir, std::string_view baseName, const std
      path.append(outputDir).append("/").append(baseName).append(".h");
      std::ofstream writer {path};
 
-     writer << "#include <any>\n"
+     writer << "#pragma once\n"
+               "\n"
+               "#include <any>\n"
                "#include \"Token.h\"\n"
                "\n";
 
