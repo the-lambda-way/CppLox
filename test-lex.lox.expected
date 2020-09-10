@@ -1,0 +1,14 @@
+VAR var nil
+IDENTIFIER language nil
+EQUAL = nil
+STRING "lox" lox
+SEMICOLON ; nil
+PRINT print nil
+IDENTIFIER language nil
+SEMICOLON ; nil
+PRINT print nil
+NUMBER 1 1.000000
+PLUS + nil
+NUMBER 2 2.000000
+SEMICOLON ; nil
+END_OF_FILE  nil

@@ -2,38 +2,17 @@
 // http://www.craftinginterpreters.com
 // https://github.com/munificent/craftinginterpreters/tree/master/java/com/craftinginterpreters/lox
 
-
 #include <fstream>      // readFile
 #include <iostream>     // std::getline
 #include <string>
 #include <vector>
-
+#include "AstPrinter.h"
+#include "Error.h"
+#include "Expr.h"
+#include "Parser.h"
 #include "Scanner.h"
-#include "TokenType.h"
 #include "Token.h"
-
-
-bool hadError = false;
-
-
-void report (int line, std::string_view where, std::string_view message)
-{
-     std::cerr << "[line " << line << "] Error" << where << ": " << message;
-     hadError = true;
-}
-
-
-void error (int line, std::string_view message)
-{
-     report(line, "", message);
-}
-
-
-void error (Token token, std::string_view message)
-{
-     if (token.type == TokenType::END_OF_FILE)     report(token.line, " at end", message);
-     else                                          report(token.line, " at '" + toString(token.lexeme) + "'", message);
-}
+#include "TokenType.h"
 
 
 void run (std::string_view source)
@@ -41,22 +20,20 @@ void run (std::string_view source)
      Scanner scanner {source};
      std::vector<Token> tokens = scanner.scanTokens();
 
+     /* Scanning - Chapter 4
      // For now, just print the tokens.
      for (auto&& token : tokens)
           std::cout << toString(token) << "\n";
-}
+     */
 
 
-void runPrompt ()
-{
-     for (std::string line;;)
-     {
-          std::cout << "> ";
-          if (!std::getline(std::cin, line))     break;
+     Parser parser {tokens};
+     Expr* expression = parser.parse();
 
-          run(line);
-          hadError = false;
-     }
+     // Stop if there was a syntax error.
+     if (hadError)     return;
+
+     std::cout << AstPrinter{}.print(expression) << "\n";
 }
 
 
@@ -89,6 +66,19 @@ void runFile (const char* path)
 }
 
 
+void runPrompt ()
+{
+     for (std::string line;;)
+     {
+          std::cout << "> ";
+          if (!std::getline(std::cin, line))     break;
+
+          run(line);
+          hadError = false;
+     }
+}
+
+
 int main (int argc, char* argv[])
 {
      if (argc > 2)
@@ -96,6 +86,8 @@ int main (int argc, char* argv[])
           std::cout << "Usage: lox [script]";
           std::exit(64);
      }
-     else if (argc == 2)     runFile(argv[1]);
-     else                    runPrompt();
+     else if (argc == 2)
+          runFile(argv[1]);
+     else
+          runPrompt();
 }

@@ -1,5 +1,6 @@
 .vscode
-CppLox.code-workspace
+*.d
+*.o
 lox
 generate_ast
 ast_printer

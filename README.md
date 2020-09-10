@@ -11,7 +11,7 @@ The conventions of the book are followed closely, departing only where standard,
 
 Run `make` or `make lox` to compile the program.
 
-Run `make test` to pass test.lox as input to the program and diff with test.lox.expected.
+Run `make test-lex` to pass test-lex.lox as input to the program and diff with test-lex.lox.expected. Run `make test-parse` to do the same with test-parse.lox and test-parse.lox.expected.
 
 Run `make generate_ast` to compile GenerateAst.cpp.
 
@@ -20,7 +20,7 @@ Run `make ast_printer` to compile AstPrinter.cpp.
 
 # Current Progress
 
-Finished through Chapter 5.
+Finished through Chapter 6.
 
 
 # License

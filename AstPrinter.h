@@ -1,5 +1,5 @@
 #include <any>
-#include <iostream>
+#include <concepts>
 #include <sstream>
 #include <string>
 #include "Expr.h"
@@ -39,35 +39,17 @@ public:
      }
 
 private:
-     template <class... Exprs>
-     std::string parenthesize (std::string_view name, const Exprs*... exprs) const
+     template <class... E>
+          requires (... && std::same_as<E, Expr>)
+     std::string parenthesize (std::string_view name, const E*... expr) const
      {
           std::ostringstream builder;
 
           builder << "(" << name;
-          ((builder << " " << print(exprs)), ...);
+          ((builder << " " << print(expr)), ...);
           builder << ")";
 
           return builder.str();
      }
 };
 
-
-int main (int argc, char* argv[])
-{
-     Expr* expression = new Binary
-     {
-          new Unary
-          {
-               Token {TokenType::MINUS, "-", empty, 1},
-               new Literal {123.}
-          },
-          Token {TokenType::STAR, "*", empty, 1},
-          new Grouping
-          {
-               new Literal {45.67}
-          }
-     };
-
-     std::cout << AstPrinter{}.print(expression) << "\n";
-}

@@ -12,7 +12,8 @@
 
 using LiteralVal = std::variant<std::monostate,       // nil, valueless tokens
                                 std::string_view,     // identifier, string, error
-                                double>;              // number
+                                double,               // number
+                                bool>;                // boolean
 
 auto empty = std::monostate {};
 
@@ -27,8 +28,9 @@ struct Token
 
 
 std::string toString (std::monostate)         { return "nil"; }
-std::string toString (std::string_view s)     { return {s.data()}; }
+std::string toString (std::string_view s)     { return std::string(s); }
 std::string toString (double n)               { return std::to_string(n); }
+std::string toString (bool b)                 { return b ? "true" : "false"; }
 
 std::string toString (const LiteralVal& v)
 {
