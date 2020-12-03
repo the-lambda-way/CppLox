@@ -1,6 +1,5 @@
 #pragma once
 
-#include <concepts>
 #include <stdexcept>
 #include <utility>         // std::move
 #include <vector>
@@ -9,217 +8,173 @@
 #include "Token.h"
 #include "TokenType.h"
 
+class Parser {
+private:
+  struct ParseError : public std::runtime_error {
+    using std::runtime_error::runtime_error;
+  };
 
-class Parser
-{
+  const std::vector<Token> tokens;
+  int current = 0;
+
 public:
-     Parser (std::vector<Token> tokens) : tokens {std::move(tokens)} {}
+  Parser(std::vector<Token> tokens)
+    : tokens{std::move(tokens)}
+  {}
 
-     Expr* parse ()
-     {
-          try
-          {
-               return expression();
-          }
-          catch (ParseError error)
-          {
-               return nullptr;
-          }
-     }
-
+  Expr* parse() {
+    try {
+      return expression();
+    } catch (ParseError error) {
+      return nullptr;
+    }
+  }
 
 private:
-     struct ParseError : public std::runtime_error
-     {
-          using std::runtime_error::runtime_error;
-     };
+  Expr* expression() {
+    return equality();
+  }
 
-     const std::vector<Token> tokens;
-     int current = 0;
+  Expr* equality() {
+    Expr* expr = comparison();
 
+    while (match(BANG_EQUAL, EQUAL_EQUAL)) {
+      Token op = previous();
+      Expr* right = comparison();
+      expr = new Binary{expr, std::move(op), right};
+    }
 
-     Expr* expression ()
-     {
-          return equality();
-     }
+    return expr;
+  }
 
-     Expr* equality ()
-     {
-          using namespace TokenTypeMembers;
+  Expr* comparison() {
+    Expr* expr = term();
 
-          Expr* expr = comparison();
+    while (match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL)) {
+      Token op = previous();
+      Expr* right = term();
+      expr = new Binary{expr, std::move(op), right};
+    }
 
-          while (match(BANG_EQUAL, EQUAL_EQUAL))
-          {
-               Token op = previous();
-               Expr* right = comparison();
-               expr = new Binary {expr, std::move(op), right};
-          }
+    return expr;
+  }
 
-          return expr;
-     }
+  Expr* term() {
+    Expr* expr = factor();
 
-     Expr* comparison ()
-     {
-          using namespace TokenTypeMembers;
+    while (match(MINUS, PLUS)) {
+      Token op = previous();
+      Expr* right = factor();
+      expr = new Binary{expr, std::move(op), right};
+    }
 
-          Expr* expr = addition();
+    return expr;
+  }
 
-          while (match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL))
-          {
-               Token op = previous();
-               Expr* right = addition();
-               expr = new Binary {expr, std::move(op), right};
-          }
+  Expr* factor() {
+    Expr* expr = unary();
 
-          return expr;
-     }
+    while (match(SLASH, STAR)) {
+      Token op = previous();
+      Expr* right = unary();
+      expr = new Binary{expr, std::move(op), right};
+    }
 
-     Expr* addition ()
-     {
-          using namespace TokenTypeMembers;
+    return expr;
+  }
 
-          Expr* expr = multiplication();
+  Expr* unary() {
+    if (match(BANG, MINUS)) {
+      Token op = previous();
+      Expr* right = unary();
+      return new Unary{std::move(op), right};
+    }
 
-          while (match(MINUS, PLUS))
-          {
-               Token op = previous();
-               Expr* right = multiplication();
-               expr = new Binary {expr, std::move(op), right};
-          }
+    return primary();
+  }
 
-          return expr;
-     }
+  Expr* primary() {
+    if (match(FALSE)) return new Literal{false};
+    if (match(TRUE)) return new Literal{true};
+    if (match(NIL)) return new Literal{nullptr};
 
-     Expr* multiplication ()
-     {
-          using namespace TokenTypeMembers;
+    if (match(NUMBER, STRING)) {
+      return new Literal{previous().literal};
+    }
 
-          Expr* expr = unary();
+    if (match(LEFT_PAREN)) {
+      Expr* expr = expression();
+      consume(RIGHT_PAREN, "Expect ')' after expression.");
+      return new Grouping{expr};
+    }
 
-          while (match(SLASH, STAR))
-          {
-               Token op = previous();
-               Expr* right = unary();
-               expr = new Binary {expr, std::move(op), right};
-          }
+    throw error(peek(), "Expect expression.");
+  }
 
-          return expr;
-     }
+  template <class... T>
+  bool match(T... type) {
+    assert((... && std::is_same_v<T, TokenType>));
 
-     Expr* unary ()
-     {
-          using namespace TokenTypeMembers;
+    if ((... || check(type))) {
+      advance();
+      return true;
+    }
 
-          if (match(BANG, MINUS))
-          {
-               Token op = previous();
-               Expr* right = unary();
-               return new Unary {std::move(op), right};
-          }
+    return false;
+  }
 
-          return primary();
-     }
+  Token consume(TokenType type, std::string_view message) {
+    if (check(type)) return advance();
 
-     Expr* primary ()
-     {
-          using namespace TokenTypeMembers;
+    throw error(peek(), message);
+  }
 
-          if (match(FALSE))     return new Literal {false};
-          if (match(TRUE))      return new Literal {true};
-          if (match(NIL))       return new Literal {empty};
+  bool check(TokenType type) {
+    if (isAtEnd()) return false;
+    return peek().type == type;
+  }
 
-          if (match(NUMBER, STRING))
-               return new Literal {previous().literal};
+  Token advance() {
+    if (!isAtEnd()) ++current;
+    return previous();
+  }
 
-          if (match(LEFT_PAREN))
-          {
-               Expr* expr = expression();
-               consume(RIGHT_PAREN, "Expect ')' after expression.");
-               return new Grouping {expr};
-          }
+  bool isAtEnd() {
+    return peek().type == END_OF_FILE;
+  }
 
-          throw error(peek(), "Expect expression.");
-     }
+  Token peek() {
+    return tokens[current];
+  }
 
-     template <class... T>
-          requires (... && std::same_as<T, TokenType>)
-     bool match (T... type)
-     {
-          if ((... || check(type)))
-          {
-               advance();
-               return true;
-          }
+  Token previous() {
+    return tokens[current - 1];
+  }
 
-          return false;
-     }
+  ParseError error(Token token, std::string_view message) {
+    ::error(token, message);
+    return ParseError{""};
+  }
 
-     Token consume (TokenType type, std::string_view message)
-     {
-          if (check(type))     return advance();
+  void synchronize() {
+    advance();
 
-          throw error(peek(), message);
-     }
+    while (!isAtEnd()) {
+      if (previous().type == SEMICOLON) return;
 
-     bool check (TokenType type)
-     {
-          if (isAtEnd())     return false;
-          return peek().type == type;
-     }
+      switch (peek().type) {
+        case CLASS:
+        case FUN:
+        case VAR:
+        case FOR:
+        case IF:
+        case WHILE:
+        case PRINT:
+        case RETURN:
+        return;
+      }
 
-     Token advance ()
-     {
-          if (!isAtEnd())     ++current;
-          return previous();
-     }
-
-     bool isAtEnd ()
-     {
-          return peek().type == TokenType::END_OF_FILE;
-     }
-
-     Token peek ()
-     {
-          return tokens[current];
-     }
-
-     Token previous ()
-     {
-          return tokens[current - 1];
-     }
-
-     ParseError error (Token token, std::string_view message)
-     {
-          ::error(token, message);
-          return ParseError {""};
-     }
-
-     void synchronize ()
-     {
-          using namespace TokenTypeMembers;
-
-          advance();
-
-          while (!isAtEnd())
-          {
-               if (previous().type == SEMICOLON)     return;
-
-               switch (peek().type)
-               {
-                    case CLASS  :
-                    case FUN    :
-                    case VAR    :
-                    case FOR    :
-                    case IF     :
-                    case WHILE  :
-                    case PRINT  :
-                    case RETURN :
-                         return;
-               }
-
-               advance();
-          }
-     }
-
-}; // class Parser
+      advance();
+    }
+  }
+};

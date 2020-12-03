@@ -1,10 +1,10 @@
 VAR var nil
-IDENTIFIER language nil
+IDENTIFIER language language
 EQUAL = nil
 STRING "lox" lox
 SEMICOLON ; nil
 PRINT print nil
-IDENTIFIER language nil
+IDENTIFIER language language
 SEMICOLON ; nil
 PRINT print nil
 NUMBER 1 1.000000
