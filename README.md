@@ -9,16 +9,22 @@ An implementation of *jlox* from Part II of [Crafting Interpreters](https://www.
 
 Run `make` or `make jlox` to compile the program.
 
-Run `make test-lex` to pass test-lex.lox as input to the program and diff with test-lex.lox.expected. Run `make test-parse` to do the same with test-parse.lox and test-parse.lox.expected.
+Tests can be run with a variant of `make test-X` to pass test-X.lox as input to the program and diff with test-X.lox.expected. The available tests are:
 
-Run `make generate_ast` to compile GenerateAst.cpp.
+| Command        | Input              | Expected                    |
+| -------------- | ------------------ | --------------------------- |
+| test-lex       | test-lex.lox       | test-lex.lox.expected       |
+| test-parse     | test-parse.lox     | test-parse.lox.expected     |
+| test-interpret | test-interpret.lox | test-interpret.lox.expected |
+
+Run `make generate_ast` to compile GenerateAst.cpp and produce Expr.h.
 
 Run `make ast_printer` to compile AstPrinterDriver.cpp.
 
 
 # Current Progress
 
-Finished through Chapter 6.
+Finished through Chapter 7.
 
 
 # License

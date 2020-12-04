@@ -13,28 +13,28 @@ public:
   const int line;
 
   std::string toString() {
-    std::string literal_string;
+    std::string text;
 
     switch (type) {
       case (IDENTIFIER):
-        literal_string = std::string{lexeme};
+        text = std::string{lexeme};
         break;
       case (STRING):
-        literal_string = std::string{std::any_cast<std::string_view>(literal)};
+        text = std::string{std::any_cast<std::string_view>(literal)};
         break;
       case (NUMBER):
-        literal_string = std::to_string(std::any_cast<double>(literal));
+        text = std::to_string(std::any_cast<double>(literal));
         break;
       case (TRUE):
-        literal_string = "true";
+        text = "true";
         break;
       case (FALSE):
-        literal_string = "false";
+        text = "false";
         break;
       default:
-        literal_string = "nil";
+        text = "nil";
     }
 
-    return ::toString(type) + " " + std::string{lexeme} + " " +  literal_string;
+    return ::toString(type) + " " + std::string{lexeme} + " " +  text;
   }
 };

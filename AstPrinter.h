@@ -12,20 +12,20 @@
 
 class AstPrinter : public Visitor {
 public:
-  std::string print(const Expr* expr) {
+  std::string print(const Expr* expr) const {
     return std::any_cast<std::string>(expr->accept(this));
   }
 
-  std::any visitBinaryExpr(const Binary* expr) override {
+  std::any visitBinaryExpr(const Binary* expr) const override {
     return parenthesize(expr->op.lexeme,
                         expr->left, expr->right);
   }
 
-  std::any visitGroupingExpr(const Grouping* expr) override {
+  std::any visitGroupingExpr(const Grouping* expr) const override {
     return parenthesize("group", expr->expression);
   }
 
-  std::any visitLiteralExpr(const Literal* expr) override {
+  std::any visitLiteralExpr(const Literal* expr) const override {
     auto& value_type = expr->value.type();
 
     if (value_type == typeid(std::string_view)) {
@@ -41,13 +41,14 @@ public:
     return "";
   }
 
-  std::any visitUnaryExpr(const Unary* expr) override {
+  std::any visitUnaryExpr(const Unary* expr) const override {
     return parenthesize(expr->op.lexeme, expr->right);
   }
 
 private:
   template <class... E>
-  std::string parenthesize(std::string_view name, const E*... expr)
+  std::string parenthesize(std::string_view name,
+                           const E*... expr) const
   {
     assert((... && std::is_same_v<E, Expr>));
 

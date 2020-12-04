@@ -31,6 +31,15 @@ test-parse.lox:
 test-parse.lox.expected:
 
 
+.PHONY: test-interpret
+test-interpret: jlox test-interpret.lox test-interpret.lox.expected
+	@echo "testing jlox with test-interpret.lox ..."
+	@./jlox test-interpret.lox | diff -u --color test-interpret.lox.expected -;
+
+test-interpret.lox:
+test-interpret.lox.expected:
+
+
 generate_ast: GenerateAst.o
 	@$(COMPILE) $< -o $@
 

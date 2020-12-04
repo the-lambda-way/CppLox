@@ -1,6 +1,6 @@
 .vscode
 *.d
 *.o
-lox
+jlox
 generate_ast
 ast_printer

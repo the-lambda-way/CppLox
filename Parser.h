@@ -14,12 +14,12 @@ private:
     using std::runtime_error::runtime_error;
   };
 
-  const std::vector<Token> tokens;
+  const std::vector<Token>& tokens;
   int current = 0;
 
 public:
-  Parser(std::vector<Token> tokens)
-    : tokens{std::move(tokens)}
+  Parser(const std::vector<Token>& tokens)
+    : tokens{tokens}
   {}
 
   Expr* parse() {

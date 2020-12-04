@@ -53,7 +53,7 @@ void defineVisitor(
   for (std::string_view type : types) {
       std::string_view typeName = trim(split(type, ":")[0]);
       writer << "  virtual std::any visit" << typeName << baseName << "(const "
-             << typeName << "* " << toLowerCase(baseName) << ") = 0;\n";
+             << typeName << "* " << toLowerCase(baseName) << ") const = 0;\n";
   }
 
   writer << "};\n";
@@ -71,12 +71,22 @@ void defineType(
   // Store parameters in fields.
   std::vector<std::string_view> fields = split(fieldList, ", ");
 
-  std::string_view name = split(fields[0], " ")[1];
-  writer << name << " {" << name << "}";
-
-  for (int i = 1; i < fields.size(); ++i) {
+  for (int i = 0; i < fields.size(); ++i) {
+    std::string_view type = split(fields[i], " ")[0];
     std::string_view name = split(fields[i], " ")[1];
-    writer << ", " << name << " {" << name << "}";
+
+    if (i == 0) {
+      writer << name;
+    }
+    else {
+      writer << ", " << name;
+    }
+
+    writer << "{";
+    if (type.back() != '*') writer << "std::move(";
+    writer << name;
+    if (type.back() != '*') writer << ")";
+    writer << "}";
   }
 
   writer << "\n"
@@ -99,7 +109,7 @@ void defineType(
 
   // Visitor pattern.
   writer << "\n"
-            "  std::any accept(Visitor* visitor) const override {\n"
+            "  std::any accept(const Visitor* visitor) const override {\n"
             "    return visitor->visit" << className << baseName << "(this);\n"
             "  }\n";
 
@@ -145,7 +155,7 @@ void defineAst(
             // values of any type in a type-safe way. Member functions of the base class and the Visitor class will
             // return std::any, and the class implementing Visitor is required to cast the return value to the
             // expected type inside its member functions.
-            "  virtual std::any accept(Visitor* visitor) const = 0;\n"
+            "  virtual std::any accept(const Visitor* visitor) const = 0;\n"
             "  virtual ~" << baseName << " () {}\n"
             "};\n\n";
 

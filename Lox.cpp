@@ -8,8 +8,11 @@
 #include <vector>
 #include "Error.h"
 #include "AstPrinter.h"
+#include "Interpreter.h"
 #include "Parser.h"
 #include "Scanner.h"
+
+const Interpreter interpreter{};
 
 void run(std::string_view source) {
   Scanner scanner {source};
@@ -27,13 +30,17 @@ void run(std::string_view source) {
   // Stop if there was a syntax error.
   if (hadError) return;
 
-  std::cout << AstPrinter{}.print(expression) << "\n";
+  // Parsing Expressions - Chapter 6
+  // std::cout << AstPrinter{}.print(expression) << "\n";
+
+  interpreter.interpret(expression);
 }
 
 // source: http://insanecoding.blogspot.com/2011/11/how-to-read-in-file-in-c.html
 std::string readFile(const char* path) {
   // Open file
-  std::ifstream file (path, std::ios::in | std::ios::binary | std::ios::ate);
+  std::ifstream file (path, std::ios::in | std::ios::binary |
+                            std::ios::ate);
   if (!file) throw (errno);
 
   // Create string of sufficient size
@@ -53,6 +60,7 @@ void runFile(const char* path) {
 
   // Indicate an error in the exit code.
   if (hadError) std::exit(65);
+  if (hadRuntimeError) std::exit(70);
 }
 
 void runPrompt() {
