@@ -19,7 +19,7 @@ Tests can be run with a variant of `make test-X` to pass test-X.lox as input to 
 | test-statements  | test-statements.lox  | test-statements.lox.expected  | 8       |
 | test-statements2 | test-statements2.lox | test-statements2.lox.expected | 8       |
 
-Run `make generate_ast` to compile GenerateAst.cpp and produce Expr.h.
+Run `make generate_ast` to compile GenerateAst.cpp and produce Expr.h and Stmt.h.
 
 Run `make ast_printer` to compile AstPrinterDriver.cpp.
 
