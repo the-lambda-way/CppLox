@@ -31,13 +31,31 @@ test-parse.lox:
 test-parse.lox.expected:
 
 
-.PHONY: test-interpret
-test-interpret: jlox test-interpret.lox test-interpret.lox.expected
-	@echo "testing jlox with test-interpret.lox ..."
-	@./jlox test-interpret.lox | diff -u --color test-interpret.lox.expected -;
+.PHONY: test-expressions
+test-expressions: jlox test-expressions.lox test-expressions.lox.expected
+	@echo "testing jlox with test-expressions.lox ..."
+	@./jlox test-expressions.lox | diff -u --color test-expressions.lox.expected -;
 
-test-interpret.lox:
-test-interpret.lox.expected:
+test-expressions.lox:
+test-expressions.lox.expected:
+
+
+.PHONY: test-statements
+test-statements: jlox test-statements.lox test-statements.lox.expected
+	@echo "testing jlox with test-statements.lox ..."
+	@./jlox test-statements.lox | diff -u --color test-statements.lox.expected -;
+
+test-statements.lox:
+test-statements.lox.expected:
+
+
+.PHONY: test-statements2
+test-statements2: jlox test-statements2.lox test-statements2.lox.expected
+	@echo "testing jlox with test-statements2.lox ..."
+	@./jlox test-statements2.lox | diff -u --color test-statements2.lox.expected -;
+
+test-statements2.lox:
+test-statements2.lox.expected:
 
 
 generate_ast: GenerateAst.o

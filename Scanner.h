@@ -3,12 +3,8 @@
 #include <map>
 #include <string_view>
 #include <vector>
+#include "Error.h"
 #include "Token.h"
-
-
-// Located in Lox.cpp
-void error (int, std::string_view);
-
 
 class Scanner {
   static const std::map<std::string_view, TokenType> keywords;
@@ -84,6 +80,8 @@ private:
       case '"': string(); break;
 
       default:
+        // error(line, "Unexpected character");
+
         if (isDigit(c)) {
           number();
         } else if (isAlpha(c)) {
@@ -97,6 +95,8 @@ private:
 
   void identifier() {
     while (isAlphaNumeric(peek())) advance();
+
+    // addToken(IDENTIFIER);
 
     std::string_view text = source.substr(start, current - start);
 

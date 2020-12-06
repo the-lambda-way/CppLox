@@ -7,7 +7,8 @@
 #include <string_view>
 #include <vector>
 
-std::vector<std::string_view> split(std::string_view str, std::string_view delim) {
+std::vector<std::string_view> split(std::string_view str,
+                                    std::string_view delim) {
   std::vector<std::string_view> out;
 
   std::string_view::size_type start;
@@ -47,13 +48,15 @@ std::string toLowerCase(std::string_view str) {
 }
 
 void defineVisitor(
-    std::ofstream& writer, std::string_view baseName, const std::vector<std::string_view>& types) {
-  writer << "struct Visitor {\n";
+    std::ofstream& writer, std::string_view baseName,
+    const std::vector<std::string_view>& types) {
+  writer << "struct " << baseName << "Visitor {\n";
 
   for (std::string_view type : types) {
       std::string_view typeName = trim(split(type, ":")[0]);
-      writer << "  virtual std::any visit" << typeName << baseName << "(const "
-             << typeName << "* " << toLowerCase(baseName) << ") const = 0;\n";
+      writer << "  virtual std::any visit" << typeName << baseName <<
+                "(" << typeName << "* " <<
+                toLowerCase(baseName) << ") = 0;\n";
   }
 
   writer << "};\n";
@@ -62,7 +65,7 @@ void defineVisitor(
 void defineType(
     std::ofstream& writer, std::string_view baseName,
     std::string_view className, std::string_view fieldList) {
-  writer << "struct " << className << " : " << baseName << " {\n";
+  writer << "struct " << className << ": " << baseName << " {\n";
 
   // Constructor.
   writer << "  " << className << "(" << fieldList << ")\n"
@@ -109,14 +112,18 @@ void defineType(
 
   // Visitor pattern.
   writer << "\n"
-            "  std::any accept(const Visitor* visitor) const override {\n"
-            "    return visitor->visit" << className << baseName << "(this);\n"
+            "  std::any accept(" << baseName <<
+            "Visitor* visitor) override {\n"
+            "    return visitor->visit" << className << baseName <<
+            "(this);\n"
             "  }\n";
 
   // Fields.
   writer << "\n";
   for (std::string_view field : fields) {
-      writer << "  const " << field << ";\n";
+    std::string_view type = split(field, " ")[0];
+    std::string_view name = split(field, " ")[1];
+    writer << "  " << type << " const " << name << ";\n";
   }
 
   writer << "};\n\n";
@@ -124,15 +131,19 @@ void defineType(
 
 
 void defineAst(
-    std::string_view outputDir, std::string_view baseName, const std::vector<std::string_view>& types) {
-  std::string path = std::string{outputDir} + "/" + std::string{baseName} + ".h";
+    std::string_view outputDir, std::string_view baseName,
+    const std::vector<std::string_view>& types) {
+  std::string path = std::string{outputDir} + "/" +
+                     std::string{baseName} + ".h";
   std::ofstream writer{path};
 
   writer << "#pragma once\n"
             "\n"
             "#include <any>\n"
-            "#include \"Token.h\"\n"
-            "\n";
+            "#include \"Token.h\"\n";
+
+  if (baseName == "Stmt") writer << "#include \"Expr.h\"\n";
+  writer << "\n";
 
   // Forward declare the AST classes.
   for (std::string_view type : types) {
@@ -146,16 +157,16 @@ void defineAst(
   defineVisitor(writer, baseName, types);
 
   // The base class.
+  // C++ does not allow virtual methods to be templated. That means
+  // multiple accept signatures are out -- at least if we don't want
+  // to over complicate things. An alternative is to use std::any,
+  // which holds values of any type in a type-safe way. Classes
+  // implementing Visitor are then required to cast the return value
+  // to the expected type inside their member functions.
   writer << "\n"
             "struct " << baseName << " {\n"
-
-            // The base accept() method.
-            // C++ does not allow virtual methods to be templated. That means multiple accept signatures are out --
-            // at least if we don't want to over complicate things. An alternative is to use std::any, which holds
-            // values of any type in a type-safe way. Member functions of the base class and the Visitor class will
-            // return std::any, and the class implementing Visitor is required to cast the return value to the
-            // expected type inside its member functions.
-            "  virtual std::any accept(const Visitor* visitor) const = 0;\n"
+            "  virtual std::any accept(" << baseName <<
+            "Visitor* visitor) = 0;\n"
             "  virtual ~" << baseName << " () {}\n"
             "};\n\n";
 
@@ -176,10 +187,23 @@ int main(int argc, char* argv[]) {
   std::string_view outputDir = argv[1];
 
   defineAst(outputDir, "Expr", {
+    "Assign   : Token name, Expr* value",
     "Binary   : Expr* left, Token op, Expr* right",
     "Grouping : Expr* expression",
     "Literal  : std::any value",
     "Unary    : Token op, Expr* right"
+
+    // Chapter 8 - Statements and State
+    ,
+    "Variable : Token name"
+  });
+
+  // Chapter 8 - Statements and State
+  defineAst(outputDir, "Stmt", {
+    "Block      : std::vector<Stmt*> statements",
+    "Expression : Expr* expression",
+    "Print      : Expr* expression",
+    "Var        : Token name, Expr* initializer"
   });
 }
 

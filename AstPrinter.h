@@ -10,26 +10,28 @@
 
 // TODO: refer to final Java code to conform the implementation details to jlox, which the book omits from the chapters
 
-class AstPrinter : public Visitor {
+class AstPrinter: public ExprVisitor {
 public:
-  std::string print(const Expr* expr) const {
+  std::string print(Expr* expr) {
     return std::any_cast<std::string>(expr->accept(this));
   }
 
-  std::any visitBinaryExpr(const Binary* expr) const override {
+  std::any visitBinaryExpr(Binary* expr) override {
     return parenthesize(expr->op.lexeme,
                         expr->left, expr->right);
   }
 
-  std::any visitGroupingExpr(const Grouping* expr) const override {
+  std::any visitGroupingExpr(Grouping* expr) override {
     return parenthesize("group", expr->expression);
   }
 
-  std::any visitLiteralExpr(const Literal* expr) const override {
+  std::any visitLiteralExpr(Literal* expr) override {
     auto& value_type = expr->value.type();
 
     if (value_type == typeid(std::string_view)) {
-      return std::string{std::any_cast<std::string_view>(expr->value)};
+      return std::string{
+        std::any_cast<std::string_view>(expr->value)
+      };
     } else if (value_type == typeid(double)) {
       return std::to_string(std::any_cast<double>(expr->value));
     } else if (value_type == typeid(bool)) {
@@ -41,14 +43,13 @@ public:
     return "";
   }
 
-  std::any visitUnaryExpr(const Unary* expr) const override {
+  std::any visitUnaryExpr(Unary* expr) override {
     return parenthesize(expr->op.lexeme, expr->right);
   }
 
 private:
   template <class... E>
-  std::string parenthesize(std::string_view name,
-                           const E*... expr) const
+  std::string parenthesize(std::string_view name, E*... expr)
   {
     assert((... && std::is_same_v<E, Expr>));
 

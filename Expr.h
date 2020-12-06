@@ -3,24 +3,45 @@
 #include <any>
 #include "Token.h"
 
+struct Assign;
 struct Binary;
 struct Grouping;
 struct Literal;
 struct Unary;
+struct Variable;
 
-struct Visitor {
-  virtual std::any visitBinaryExpr(const Binary* expr) const = 0;
-  virtual std::any visitGroupingExpr(const Grouping* expr) const = 0;
-  virtual std::any visitLiteralExpr(const Literal* expr) const = 0;
-  virtual std::any visitUnaryExpr(const Unary* expr) const = 0;
+struct ExprVisitor {
+  virtual std::any visitAssignExpr(Assign* expr) = 0;
+  virtual std::any visitBinaryExpr(Binary* expr) = 0;
+  virtual std::any visitGroupingExpr(Grouping* expr) = 0;
+  virtual std::any visitLiteralExpr(Literal* expr) = 0;
+  virtual std::any visitUnaryExpr(Unary* expr) = 0;
+  virtual std::any visitVariableExpr(Variable* expr) = 0;
 };
 
 struct Expr {
-  virtual std::any accept(const Visitor* visitor) const = 0;
+  virtual std::any accept(ExprVisitor* visitor) = 0;
   virtual ~Expr () {}
 };
 
-struct Binary : Expr {
+struct Assign: Expr {
+  Assign(Token name, Expr* value)
+    : name{std::move(name)}, value{value}
+  {}
+
+  ~Assign() {
+    delete value;
+  }
+
+  std::any accept(ExprVisitor* visitor) override {
+    return visitor->visitAssignExpr(this);
+  }
+
+  Token const name;
+  Expr* const value;
+};
+
+struct Binary: Expr {
   Binary(Expr* left, Token op, Expr* right)
     : left{left}, op{std::move(op)}, right{right}
   {}
@@ -30,16 +51,16 @@ struct Binary : Expr {
     delete right;
   }
 
-  std::any accept(const Visitor* visitor) const override {
+  std::any accept(ExprVisitor* visitor) override {
     return visitor->visitBinaryExpr(this);
   }
 
-  const Expr* left;
-  const Token op;
-  const Expr* right;
+  Expr* const left;
+  Token const op;
+  Expr* const right;
 };
 
-struct Grouping : Expr {
+struct Grouping: Expr {
   Grouping(Expr* expression)
     : expression{expression}
   {}
@@ -48,14 +69,14 @@ struct Grouping : Expr {
     delete expression;
   }
 
-  std::any accept(const Visitor* visitor) const override {
+  std::any accept(ExprVisitor* visitor) override {
     return visitor->visitGroupingExpr(this);
   }
 
-  const Expr* expression;
+  Expr* const expression;
 };
 
-struct Literal : Expr {
+struct Literal: Expr {
   Literal(std::any value)
     : value{std::move(value)}
   {}
@@ -63,14 +84,14 @@ struct Literal : Expr {
   ~Literal() {
   }
 
-  std::any accept(const Visitor* visitor) const override {
+  std::any accept(ExprVisitor* visitor) override {
     return visitor->visitLiteralExpr(this);
   }
 
-  const std::any value;
+  std::any const value;
 };
 
-struct Unary : Expr {
+struct Unary: Expr {
   Unary(Token op, Expr* right)
     : op{std::move(op)}, right{right}
   {}
@@ -79,11 +100,26 @@ struct Unary : Expr {
     delete right;
   }
 
-  std::any accept(const Visitor* visitor) const override {
+  std::any accept(ExprVisitor* visitor) override {
     return visitor->visitUnaryExpr(this);
   }
 
-  const Token op;
-  const Expr* right;
+  Token const op;
+  Expr* const right;
+};
+
+struct Variable: Expr {
+  Variable(Token name)
+    : name{std::move(name)}
+  {}
+
+  ~Variable() {
+  }
+
+  std::any accept(ExprVisitor* visitor) override {
+    return visitor->visitVariableExpr(this);
+  }
+
+  Token const name;
 };
 

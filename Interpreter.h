@@ -2,28 +2,112 @@
 
 #include <iostream>
 #include <stdexcept>
+
+// Chapter 8 - Statements and State
+#include <vector>
+
 #include "Error.h"
 #include "Expr.h"
+
+// Chapter 8 - Statements and State
+#include "Environment.h"
+#include "Stmt.h"
+
+// Chapter 7 - Evaluating Expressions
 #include "RuntimeError.h"
 
-class Interpreter : public Visitor {
+// class Interpreter: public ExprVisitor {
+
+// Chapter 8 - Statements and State
+class Interpreter: public ExprVisitor,
+                   public StmtVisitor {
+  // Chapter 8 - Statements and State
+  Environment* environment = new Environment{};
+
 public:
-  void interpret(Expr* expression) const {
+  // void interpret(Expr* expression) const {
+  //   try {
+  //     std::any value = evaluate(expression);
+  //     std::cout << stringify(value) << "\n";
+  //   } catch (RuntimeError error) {
+  //     runtimeError(error);
+  //   }
+  // }
+
+  // Chapter 8 - Statements and State
+  void interpret(std::vector<Stmt*> statements) {
     try {
-      std::any value = evaluate(expression);
-      std::cout << stringify(value) << "\n";
+      for (Stmt* statement : statements) {
+        execute(statement);
+      }
     } catch (RuntimeError error) {
       runtimeError(error);
     }
   }
 
 private:
-  std::any evaluate(const Expr* expr) const {
+  std::any evaluate(Expr* expr) {
     return expr->accept(this);
   }
 
+  // Chapter 8 - Statements and State
+  void execute(Stmt* stmt) {
+    stmt->accept(this);
+  }
+
 public:
-  std::any visitBinaryExpr(const Binary* expr) const {
+  // Chapter 8 - Statements and State
+  void executeBlock(std::vector<Stmt*> statements,
+                   Environment* environment) {
+    Environment* previous = this->environment;
+    try {
+      this->environment = environment;
+
+      for (Stmt* statement : statements) {
+        execute(statement);
+      }
+    } catch (...) {
+      this->environment = previous;
+      throw;
+    }
+
+    this->environment = previous;
+  }
+
+  std::any visitBlockStmt(Block* stmt) {
+    executeBlock(stmt->statements, new Environment{environment});
+    return {};
+  }
+
+  std::any visitExpressionStmt(Expression* stmt) override {
+    evaluate(stmt->expression);
+    return {};
+  }
+
+  std::any visitPrintStmt(Print* stmt) override {
+    std::any value = evaluate(stmt->expression);
+    std::cout << stringify(value) << "\n";
+    return {};
+  }
+
+  // Chapter 8 - Statements and State
+  std::any visitVarStmt(Var* stmt) override {
+    std::any value = nullptr;
+    if (stmt->initializer != nullptr) {
+      value = evaluate(stmt->initializer);
+    }
+
+    environment->define(stmt->name.lexeme, value);
+    return {};
+  }
+
+  std::any visitAssignExpr(Assign* expr) {
+    std::any value = evaluate(expr->value);
+    environment->assign(expr->name, value);
+    return value;
+  }
+
+  std::any visitBinaryExpr(Binary* expr) override {
     std::any left = evaluate(expr->left);
     std::any right = evaluate(expr->right);
 
@@ -62,6 +146,8 @@ public:
                  std::string{std::any_cast<std::string_view>(right)};
         }
 
+        // break;
+
         throw RuntimeError{expr->op,
           "Operands must be two numbers or two strings."};
       case SLASH:
@@ -80,15 +166,15 @@ public:
     return nullptr;
   }
 
-  std::any visitGroupingExpr(const Grouping* expr) const {
+  std::any visitGroupingExpr(Grouping* expr) override {
     return evaluate(expr->expression);
   }
 
-  std::any visitLiteralExpr(const Literal* expr) const {
+  std::any visitLiteralExpr(Literal* expr) override {
     return expr->value;
   }
 
-  std::any visitUnaryExpr(const Unary* expr) const {
+  std::any visitUnaryExpr(Unary* expr) override {
     std::any right = evaluate(expr->right);
 
     switch (expr->op.type) {
@@ -101,6 +187,11 @@ public:
 
     // Unreachable.
     return nullptr;
+  }
+
+  // Chapter 8 - Statements and State
+  std::any visitVariableExpr(Variable* expr) {
+    return environment->get(expr->name);
   }
 
 private:
@@ -119,7 +210,7 @@ private:
     throw RuntimeError{op, "Operands must be numbers."};
   }
 
-  bool isTruthy(std::any object) const {
+  bool isTruthy(std::any object) {
     if (object.type() == typeid(nullptr)) return false;
     if (object.type() == typeid(bool)) {
       return std::any_cast<bool>(object);
@@ -127,7 +218,7 @@ private:
     return true;
   }
 
-  bool isEqual(std::any a, std::any b) const {
+  bool isEqual(std::any a, std::any b) {
     if (a.type() == typeid(nullptr) && b.type() == typeid(nullptr)) {
       return true;
     }
@@ -148,7 +239,7 @@ private:
     return false;
   }
 
-  std::string stringify(std::any object) const {
+  std::string stringify(std::any object) {
     if (object.type() == typeid(nullptr)) return "nil";
 
     if (object.type() == typeid(double)) {

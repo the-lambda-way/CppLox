@@ -1,39 +1,68 @@
-// An implementation of the Lox language in C++
-// http://www.craftinginterpreters.com
-// https://github.com/munificent/craftinginterpreters/tree/master/java/com/craftinginterpreters/lox
-
 #include <fstream>      // readFile
 #include <iostream>     // std::getline
 #include <string>
 #include <vector>
 #include "Error.h"
 #include "AstPrinter.h"
-#include "Interpreter.h"
-#include "Parser.h"
 #include "Scanner.h"
 
-const Interpreter interpreter{};
+// Chapter 7 - Evaluating Expressions
+#include "Interpreter.h"
 
+// Chapter 6 - Parsing Expressions
+#include "Parser.h"
+
+
+// Chapter 7 - Evaluating Expressions
+Interpreter interpreter{};
+
+// void run(std::string_view source) {
+//   Scanner scanner {source};
+//   std::vector<Token> tokens = scanner.scanTokens();
+
+//   // For now, just print the tokens.
+//   for (Token token : tokens) {
+//     std::cout << token.toString() << "\n";
+//   }
+
+//   // Stop if there was a syntax error.
+//   if (hadError) return;
+//   }
+// }
+
+// Chapter 6 - Parsing Expressions
+// void run(std::string_view source) {
+//   Scanner scanner {source};
+//   std::vector<Token> tokens = scanner.scanTokens();
+
+//   Parser parser {tokens};
+//   Expr* expression = parser.parse();
+
+//   // Stop if there was a syntax error.
+//   if (hadError) return;
+
+//   // std::cout << AstPrinter{}.print(expression) << "\n";
+
+//   // Chapter 7 - Evaluating Expressions
+//   interpreter.interpret(expression);
+// }
+
+// Chapter 8 - Statements and State
 void run(std::string_view source) {
   Scanner scanner {source};
   std::vector<Token> tokens = scanner.scanTokens();
 
-  // Scanning - Chapter 4
-  // For now, just print the tokens.
-  // for (Token token : tokens) {
-  //   std::cout << token.toString() << "\n";
-  // }
-
   Parser parser {tokens};
-  Expr* expression = parser.parse();
+  std::vector<Stmt*> statements = parser.parse();
 
   // Stop if there was a syntax error.
   if (hadError) return;
 
-  // Parsing Expressions - Chapter 6
-  // std::cout << AstPrinter{}.print(expression) << "\n";
+  interpreter.interpret(statements);
 
-  interpreter.interpret(expression);
+  for (Stmt* statement : statements) {
+    delete statement;
+  }
 }
 
 // source: http://insanecoding.blogspot.com/2011/11/how-to-read-in-file-in-c.html
@@ -60,6 +89,8 @@ void runFile(const char* path) {
 
   // Indicate an error in the exit code.
   if (hadError) std::exit(65);
+
+  // Chapter 7 - Evaluating Expressions
   if (hadRuntimeError) std::exit(70);
 }
 
