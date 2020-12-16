@@ -18,6 +18,7 @@ Tests can be run with a variant of `make test-X` to pass test-X.lox as input to 
 | test-expressions | test-expressions.lox | test-expressions.lox.expected | 7       |
 | test-statements  | test-statements.lox  | test-statements.lox.expected  | 8       |
 | test-statements2 | test-statements2.lox | test-statements2.lox.expected | 8       |
+| test-control     | test-control.lox     | test-control.lox.expected     | 9       |
 
 Run `make generate_ast` to compile GenerateAst.cpp and produce Expr.h and Stmt.h.
 
@@ -26,7 +27,7 @@ Run `make ast_printer` to compile AstPrinterDriver.cpp.
 
 # Current Progress
 
-Finished through Chapter 8.
+Finished through Chapter 9.
 
 
 # License

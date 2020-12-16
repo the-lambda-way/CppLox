@@ -74,13 +74,23 @@ public:
     this->environment = previous;
   }
 
-  std::any visitBlockStmt(Block* stmt) {
+  std::any visitBlockStmt(Block* stmt) override {
     executeBlock(stmt->statements, new Environment{environment});
     return {};
   }
 
   std::any visitExpressionStmt(Expression* stmt) override {
     evaluate(stmt->expression);
+    return {};
+  }
+
+  // Chapter 9 - Control Flow
+  std::any visitIfStmt(If* stmt) override {
+    if (isTruthy(evaluate(stmt->condition))) {
+      execute(stmt->thenBranch);
+    } else if (stmt->elseBranch != nullptr) {
+      execute(stmt->elseBranch);
+    }
     return {};
   }
 
@@ -101,7 +111,15 @@ public:
     return {};
   }
 
-  std::any visitAssignExpr(Assign* expr) {
+  // Chapter 9 - Control Flow
+  std::any visitWhileStmt(While* stmt) override {
+    while (isTruthy(evaluate(stmt->condition))) {
+      execute(stmt->body);
+    }
+    return {};
+  }
+
+  std::any visitAssignExpr(Assign* expr) override {
     std::any value = evaluate(expr->value);
     environment->assign(expr->name, value);
     return value;
@@ -174,6 +192,19 @@ public:
     return expr->value;
   }
 
+  // Chapter 9 - Control Flow
+  std::any visitLogicalExpr(Logical* expr) override {
+    std::any left = evaluate(expr->left);
+
+    if (expr->op.type == OR) {
+      if (isTruthy(left)) return left;
+    } else {
+      if (!isTruthy(left)) return left;
+    }
+
+    return evaluate(expr->right);
+  }
+
   std::any visitUnaryExpr(Unary* expr) override {
     std::any right = evaluate(expr->right);
 
@@ -190,7 +221,7 @@ public:
   }
 
   // Chapter 8 - Statements and State
-  std::any visitVariableExpr(Variable* expr) {
+  std::any visitVariableExpr(Variable* expr) override {
     return environment->get(expr->name);
   }
 

@@ -58,6 +58,15 @@ test-statements2.lox:
 test-statements2.lox.expected:
 
 
+.PHONY: test-control
+test-control: jlox test-control.lox test-control.lox.expected
+	@echo "testing jlox with test-control.lox ..."
+	@./jlox test-control.lox | diff -u --color test-control.lox.expected -;
+
+test-control.lox:
+test-control.lox.expected:
+
+
 generate_ast: GenerateAst.o
 	@$(COMPILE) $< -o $@
 

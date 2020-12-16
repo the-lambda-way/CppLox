@@ -6,14 +6,18 @@
 
 struct Block;
 struct Expression;
+struct If;
 struct Print;
 struct Var;
+struct While;
 
 struct StmtVisitor {
   virtual std::any visitBlockStmt(Block* stmt) = 0;
   virtual std::any visitExpressionStmt(Expression* stmt) = 0;
+  virtual std::any visitIfStmt(If* stmt) = 0;
   virtual std::any visitPrintStmt(Print* stmt) = 0;
   virtual std::any visitVarStmt(Var* stmt) = 0;
+  virtual std::any visitWhileStmt(While* stmt) = 0;
 };
 
 struct Stmt {
@@ -52,6 +56,26 @@ struct Expression: Stmt {
   Expr* const expression;
 };
 
+struct If: Stmt {
+  If(Expr* condition, Stmt* thenBranch, Stmt* elseBranch)
+    : condition{condition}, thenBranch{thenBranch}, elseBranch{elseBranch}
+  {}
+
+  ~If() {
+    delete condition;
+    delete thenBranch;
+    delete elseBranch;
+  }
+
+  std::any accept(StmtVisitor* visitor) override {
+    return visitor->visitIfStmt(this);
+  }
+
+  Expr* const condition;
+  Stmt* const thenBranch;
+  Stmt* const elseBranch;
+};
+
 struct Print: Stmt {
   Print(Expr* expression)
     : expression{expression}
@@ -83,5 +107,23 @@ struct Var: Stmt {
 
   Token const name;
   Expr* const initializer;
+};
+
+struct While: Stmt {
+  While(Expr* condition, Stmt* body)
+    : condition{condition}, body{body}
+  {}
+
+  ~While() {
+    delete condition;
+    delete body;
+  }
+
+  std::any accept(StmtVisitor* visitor) override {
+    return visitor->visitWhileStmt(this);
+  }
+
+  Expr* const condition;
+  Stmt* const body;
 };
 

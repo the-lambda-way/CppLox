@@ -63,12 +63,75 @@ private:
   }
 
   Stmt* statement() {
+    // Chapter 9 - Control Flow
+    if (match(FOR)) return forStatement();
+    if (match(IF)) return ifStatement();
+
     if (match(PRINT)) return printStatement();
+
+    // Chapter 9 - Control Flow
+    if (match(WHILE)) return whileStatement();
 
     // Chapter 8 - Statements and State
     if (match(LEFT_BRACE)) return new Block{block()};
 
     return expressionStatement();
+  }
+
+  // Chapter 9 - Control Flow
+  Stmt* forStatement() {
+    consume(LEFT_PAREN, "Expect '(' after 'for'.");
+
+    Stmt* initializer;
+    if (match(SEMICOLON)) {
+      initializer = nullptr;
+    } else if (match(VAR)) {
+      initializer = varDeclaration();
+    } else {
+      initializer = expressionStatement();
+    }
+
+    Expr* condition = nullptr;
+    if (!check(SEMICOLON)) {
+      condition = expression();
+    }
+    consume(SEMICOLON, "Expect ';' after loop condition.");
+
+    Expr* increment = nullptr;
+    if (!check(RIGHT_PAREN)) {
+      increment = expression();
+    }
+    consume(RIGHT_PAREN, "Expect ')' after for clauses.");
+    Stmt* body = statement();
+
+    if (increment != nullptr) {
+      body = new Block{{
+          body,
+          new Expression{increment}}};
+    }
+
+    if (condition == nullptr) condition = new Literal{true};
+    body = new While{condition, body};
+
+    if (initializer != nullptr) {
+      body = new Block{{initializer, body}};
+    }
+
+    return body;
+  }
+
+  Stmt* ifStatement() {
+    consume(LEFT_PAREN, "Expect '(' after 'if'.");
+    Expr* condition = expression();
+    consume(RIGHT_PAREN, "Expect ')' after if condition.");
+
+    Stmt* thenBranch = statement();
+    Stmt* elseBranch = nullptr;
+    if (match(ELSE)) {
+      elseBranch = statement();
+    }
+
+    return new If(condition, thenBranch, elseBranch);
   }
 
   Stmt* printStatement() {
@@ -90,6 +153,15 @@ private:
     return new Var{std::move(name), initializer};
   }
 
+  Stmt* whileStatement() {
+    consume(LEFT_PAREN, "Expect '(' after 'while'.");
+    Expr* condition = expression();
+    consume(RIGHT_PAREN, "Expect ')' after condition.");
+    Stmt* body = statement();
+
+    return new While{condition, body};
+  }
+
   Stmt* expressionStatement() {
     Expr* expr = expression();
     consume(SEMICOLON, "Expect ';' after expression.");
@@ -109,7 +181,10 @@ private:
   }
 
   Expr* assignment() {
-    Expr* expr = equality();
+    // Expr* expr = equality();
+
+    // Chapter 9 - Control Flow
+    Expr* expr = orExpression();
 
     if (match(EQUAL)) {
       Token equals = previous();
@@ -121,6 +196,31 @@ private:
       }
 
       error(std::move(equals), "Invalid assignment target.");
+    }
+
+    return expr;
+  }
+
+  // Chapter 9 - Control Flow
+  Expr* orExpression() {
+    Expr* expr = andExpression();
+
+    while (match(OR)) {
+      Token op = previous();
+      Expr* right = andExpression();
+      expr = new Logical{expr, std::move(op), right};
+    }
+
+    return expr;
+  }
+
+  Expr* andExpression() {
+    Expr* expr = equality();
+
+    while (match(AND)) {
+      Token op = previous();
+      Expr* right = equality();
+      expr = new Logical{expr, std::move(op), right};
     }
 
     return expr;

@@ -191,6 +191,10 @@ int main(int argc, char* argv[]) {
     "Binary   : Expr* left, Token op, Expr* right",
     "Grouping : Expr* expression",
     "Literal  : std::any value",
+
+    // Chapter 9 - Control Flow
+    "Logical  : Expr* left, Token op, Expr* right",
+
     "Unary    : Token op, Expr* right"
 
     // Chapter 8 - Statements and State
@@ -202,8 +206,17 @@ int main(int argc, char* argv[]) {
   defineAst(outputDir, "Stmt", {
     "Block      : std::vector<Stmt*> statements",
     "Expression : Expr* expression",
+
+    // Chapter 9 - Control Flow
+    "If         : Expr* condition, Stmt* thenBranch,"
+                " Stmt* elseBranch",
+
     "Print      : Expr* expression",
     "Var        : Token name, Expr* initializer"
+
+    // Chapter 9 - Control Flow
+    ,
+    "While      : Expr* condition, Stmt* body"
   });
 }
 
