@@ -47,6 +47,36 @@ std::string toLowerCase(std::string_view str) {
   return copy;
 }
 
+// In C++ we cannot rely on garbage collection to clean up our pointer
+// messes for us. Instead of having to worry about calling delete
+// every time we're done with some heap memory, we can dump this job
+// onto std::shared_ptr. This function lets us use a '*' in our
+// metaprogram to indicate that we actually want a smart pointer.
+std::string fix_pointer(std::string_view field) {
+  std::ostringstream out;
+  std::string_view type = split(field, " ")[0];
+  std::string_view name = split(field, " ")[1];
+  bool close_bracket = false;
+
+  if (type.substr(0, 12) == "std::vector<") {
+    out << "std::vector<";
+    type = type.substr(12, type.length() - 13);
+    close_bracket = true;
+  }
+
+  if (type.back() == '*') {
+    type.remove_suffix(1);
+    out << "std::shared_ptr<" << type << ">";
+  } else {
+    out << type;
+  }
+
+  if (close_bracket) out << ">";
+  out << " " << name;
+
+  return out.str();
+}
+
 void defineVisitor(
     std::ofstream& writer, std::string_view baseName,
     const std::vector<std::string_view>& types) {
@@ -55,80 +85,61 @@ void defineVisitor(
   for (std::string_view type : types) {
       std::string_view typeName = trim(split(type, ":")[0]);
       writer << "  virtual std::any visit" << typeName << baseName <<
-                "(" << typeName << "* " <<
+                "(std::shared_ptr<" << typeName << "> " <<
                 toLowerCase(baseName) << ") = 0;\n";
   }
 
+  writer << "  virtual ~" << baseName << "Visitor() = default;\n";
   writer << "};\n";
 }
 
 void defineType(
     std::ofstream& writer, std::string_view baseName,
     std::string_view className, std::string_view fieldList) {
-  writer << "struct " << className << ": " << baseName << " {\n";
+  writer << "struct " << className << ": " << baseName <<
+            ", std::enable_shared_from_this<" << className << "> {\n";
 
   // Constructor.
-  writer << "  " << className << "(" << fieldList << ")\n"
+  writer << "  " << className << "(";
+
+  std::vector<std::string_view> fields = split(fieldList, ", ");
+  writer << fix_pointer(fields[0]);
+
+  for (int i = 1; i < fields.size(); ++i) {
+    writer << ", " << fix_pointer(fields[i]);
+  }
+
+  writer << ")\n"
          << "    : ";
 
   // Store parameters in fields.
-  std::vector<std::string_view> fields = split(fieldList, ", ");
+  std::string_view name = split(fields[0], " ")[1];
+  writer << name << "{std::move(" << name << ")}";
 
-  for (int i = 0; i < fields.size(); ++i) {
-    std::string_view type = split(fields[i], " ")[0];
-    std::string_view name = split(fields[i], " ")[1];
-
-    if (i == 0) {
-      writer << name;
-    }
-    else {
-      writer << ", " << name;
-    }
-
-    writer << "{";
-    if (type.back() != '*') writer << "std::move(";
-    writer << name;
-    if (type.back() != '*') writer << ")";
-    writer << "}";
+  for (int i = 1; i < fields.size(); ++i) {
+    name = split(fields[i], " ")[1];
+    writer << ", " << name << "{std::move(" << name << ")}";
   }
 
   writer << "\n"
          << "  {}\n";
 
-  // Destructor.
-  writer << "\n"
-         << "  ~" << className << "() {\n";
-
-  for (std::string_view field : fields) {
-    std::string_view type = trim(split(field, " ")[0]);
-
-    if (type.back() != '*') continue;
-
-    std::string_view name = trim(split(field, " ")[1]);
-    writer << "    delete " << name << ";\n";
-  }
-
-  writer << "  }\n";
-
   // Visitor pattern.
   writer << "\n"
             "  std::any accept(" << baseName <<
-            "Visitor* visitor) override {\n"
-            "    return visitor->visit" << className << baseName <<
-            "(this);\n"
+            "Visitor& visitor) override {\n"
+            "    return visitor.visit" << className << baseName <<
+            "(this->shared_from_this());\n"
             "  }\n";
 
   // Fields.
   writer << "\n";
   for (std::string_view field : fields) {
-    std::string_view type = split(field, " ")[0];
-    std::string_view name = split(field, " ")[1];
-    writer << "  " << type << " const " << name << ";\n";
+    writer << "  const " << fix_pointer(field) << ";\n";
   }
 
   writer << "};\n\n";
 }
-
 
 void defineAst(
     std::string_view outputDir, std::string_view baseName,
@@ -140,6 +151,7 @@ void defineAst(
   writer << "#pragma once\n"
             "\n"
             "#include <any>\n"
+            "#include <memory>\n"
             "#include \"Token.h\"\n";
 
   if (baseName == "Stmt") writer << "#include \"Expr.h\"\n";
@@ -166,8 +178,7 @@ void defineAst(
   writer << "\n"
             "struct " << baseName << " {\n"
             "  virtual std::any accept(" << baseName <<
-            "Visitor* visitor) = 0;\n"
-            "  virtual ~" << baseName << " () {}\n"
+            "Visitor& visitor) = 0;\n"
             "};\n\n";
 
   // The AST classes.
@@ -189,6 +200,11 @@ int main(int argc, char* argv[]) {
   defineAst(outputDir, "Expr", {
     "Assign   : Token name, Expr* value",
     "Binary   : Expr* left, Token op, Expr* right",
+
+    // Chapter 10 - Functions
+    "Call     : Expr* callee, Token paren,"
+              " std::vector<Expr*> arguments",
+
     "Grouping : Expr* expression",
     "Literal  : std::any value",
 
@@ -207,11 +223,19 @@ int main(int argc, char* argv[]) {
     "Block      : std::vector<Stmt*> statements",
     "Expression : Expr* expression",
 
+    // Chapter 10 - Functions
+    "Function   : Token name, std::vector<Token> params,"
+                " std::vector<Stmt*> body",
+
     // Chapter 9 - Control Flow
     "If         : Expr* condition, Stmt* thenBranch,"
                 " Stmt* elseBranch",
 
     "Print      : Expr* expression",
+
+    // Chapter 10 - Functions
+    "Return     : Token keyword, Expr* value",
+
     "Var        : Token name, Expr* initializer"
 
     // Chapter 9 - Control Flow

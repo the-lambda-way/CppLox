@@ -1,129 +1,135 @@
 #pragma once
 
 #include <any>
+#include <memory>
 #include "Token.h"
 #include "Expr.h"
 
 struct Block;
 struct Expression;
+struct Function;
 struct If;
 struct Print;
+struct Return;
 struct Var;
 struct While;
 
 struct StmtVisitor {
-  virtual std::any visitBlockStmt(Block* stmt) = 0;
-  virtual std::any visitExpressionStmt(Expression* stmt) = 0;
-  virtual std::any visitIfStmt(If* stmt) = 0;
-  virtual std::any visitPrintStmt(Print* stmt) = 0;
-  virtual std::any visitVarStmt(Var* stmt) = 0;
-  virtual std::any visitWhileStmt(While* stmt) = 0;
+  virtual std::any visitBlockStmt(std::shared_ptr<Block> stmt) = 0;
+  virtual std::any visitExpressionStmt(std::shared_ptr<Expression> stmt) = 0;
+  virtual std::any visitFunctionStmt(std::shared_ptr<Function> stmt) = 0;
+  virtual std::any visitIfStmt(std::shared_ptr<If> stmt) = 0;
+  virtual std::any visitPrintStmt(std::shared_ptr<Print> stmt) = 0;
+  virtual std::any visitReturnStmt(std::shared_ptr<Return> stmt) = 0;
+  virtual std::any visitVarStmt(std::shared_ptr<Var> stmt) = 0;
+  virtual std::any visitWhileStmt(std::shared_ptr<While> stmt) = 0;
+  virtual ~StmtVisitor() = default;
 };
 
 struct Stmt {
-  virtual std::any accept(StmtVisitor* visitor) = 0;
-  virtual ~Stmt () {}
+  virtual std::any accept(StmtVisitor& visitor) = 0;
 };
 
-struct Block: Stmt {
-  Block(std::vector<Stmt*> statements)
+struct Block: Stmt, std::enable_shared_from_this<Block> {
+  Block(std::vector<std::shared_ptr<Stmt>> statements)
     : statements{std::move(statements)}
   {}
 
-  ~Block() {
+  std::any accept(StmtVisitor& visitor) override {
+    return visitor.visitBlockStmt(this->shared_from_this());
   }
 
-  std::any accept(StmtVisitor* visitor) override {
-    return visitor->visitBlockStmt(this);
-  }
-
-  std::vector<Stmt*> const statements;
+  const std::vector<std::shared_ptr<Stmt>> statements;
 };
 
-struct Expression: Stmt {
-  Expression(Expr* expression)
-    : expression{expression}
+struct Expression: Stmt, std::enable_shared_from_this<Expression> {
+  Expression(std::shared_ptr<Expr> expression)
+    : expression{std::move(expression)}
   {}
 
-  ~Expression() {
-    delete expression;
+  std::any accept(StmtVisitor& visitor) override {
+    return visitor.visitExpressionStmt(this->shared_from_this());
   }
 
-  std::any accept(StmtVisitor* visitor) override {
-    return visitor->visitExpressionStmt(this);
-  }
-
-  Expr* const expression;
+  const std::shared_ptr<Expr> expression;
 };
 
-struct If: Stmt {
-  If(Expr* condition, Stmt* thenBranch, Stmt* elseBranch)
-    : condition{condition}, thenBranch{thenBranch}, elseBranch{elseBranch}
+struct Function: Stmt, std::enable_shared_from_this<Function> {
+  Function(Token name, std::vector<Token> params, std::vector<std::shared_ptr<Stmt>> body)
+    : name{std::move(name)}, params{std::move(params)}, body{std::move(body)}
   {}
 
-  ~If() {
-    delete condition;
-    delete thenBranch;
-    delete elseBranch;
+  std::any accept(StmtVisitor& visitor) override {
+    return visitor.visitFunctionStmt(this->shared_from_this());
   }
 
-  std::any accept(StmtVisitor* visitor) override {
-    return visitor->visitIfStmt(this);
-  }
-
-  Expr* const condition;
-  Stmt* const thenBranch;
-  Stmt* const elseBranch;
+  const Token name;
+  const std::vector<Token> params;
+  const std::vector<std::shared_ptr<Stmt>> body;
 };
 
-struct Print: Stmt {
-  Print(Expr* expression)
-    : expression{expression}
+struct If: Stmt, std::enable_shared_from_this<If> {
+  If(std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> thenBranch, std::shared_ptr<Stmt> elseBranch)
+    : condition{std::move(condition)}, thenBranch{std::move(thenBranch)}, elseBranch{std::move(elseBranch)}
   {}
 
-  ~Print() {
-    delete expression;
+  std::any accept(StmtVisitor& visitor) override {
+    return visitor.visitIfStmt(this->shared_from_this());
   }
 
-  std::any accept(StmtVisitor* visitor) override {
-    return visitor->visitPrintStmt(this);
-  }
-
-  Expr* const expression;
+  const std::shared_ptr<Expr> condition;
+  const std::shared_ptr<Stmt> thenBranch;
+  const std::shared_ptr<Stmt> elseBranch;
 };
 
-struct Var: Stmt {
-  Var(Token name, Expr* initializer)
-    : name{std::move(name)}, initializer{initializer}
+struct Print: Stmt, std::enable_shared_from_this<Print> {
+  Print(std::shared_ptr<Expr> expression)
+    : expression{std::move(expression)}
   {}
 
-  ~Var() {
-    delete initializer;
+  std::any accept(StmtVisitor& visitor) override {
+    return visitor.visitPrintStmt(this->shared_from_this());
   }
 
-  std::any accept(StmtVisitor* visitor) override {
-    return visitor->visitVarStmt(this);
-  }
-
-  Token const name;
-  Expr* const initializer;
+  const std::shared_ptr<Expr> expression;
 };
 
-struct While: Stmt {
-  While(Expr* condition, Stmt* body)
-    : condition{condition}, body{body}
+struct Return: Stmt, std::enable_shared_from_this<Return> {
+  Return(Token keyword, std::shared_ptr<Expr> value)
+    : keyword{std::move(keyword)}, value{std::move(value)}
   {}
 
-  ~While() {
-    delete condition;
-    delete body;
+  std::any accept(StmtVisitor& visitor) override {
+    return visitor.visitReturnStmt(this->shared_from_this());
   }
 
-  std::any accept(StmtVisitor* visitor) override {
-    return visitor->visitWhileStmt(this);
+  const Token keyword;
+  const std::shared_ptr<Expr> value;
+};
+
+struct Var: Stmt, std::enable_shared_from_this<Var> {
+  Var(Token name, std::shared_ptr<Expr> initializer)
+    : name{std::move(name)}, initializer{std::move(initializer)}
+  {}
+
+  std::any accept(StmtVisitor& visitor) override {
+    return visitor.visitVarStmt(this->shared_from_this());
   }
 
-  Expr* const condition;
-  Stmt* const body;
+  const Token name;
+  const std::shared_ptr<Expr> initializer;
+};
+
+struct While: Stmt, std::enable_shared_from_this<While> {
+  While(std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> body)
+    : condition{std::move(condition)}, body{std::move(body)}
+  {}
+
+  std::any accept(StmtVisitor& visitor) override {
+    return visitor.visitWhileStmt(this->shared_from_this());
+  }
+
+  const std::shared_ptr<Expr> condition;
+  const std::shared_ptr<Stmt> body;
 };
 

@@ -123,7 +123,8 @@ private:
     }
 
     addToken(NUMBER,
-        std::stod(std::string{source.substr(start, current - start)}));
+        std::stod(std::string{
+            source.substr(start, current - start)}));
   }
 
   void string() {
@@ -141,7 +142,7 @@ private:
     advance();
 
     // Trim the surrounding quotes.
-    std::string_view value = source.substr(start + 1, current - 2 - start);
+    std::string value{source.substr(start + 1, current - 2 - start)};
     addToken(STRING, value);
   }
 

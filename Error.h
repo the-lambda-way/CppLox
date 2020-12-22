@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iostream>
-#include <string>
+#include <string_view>
 #include "RuntimeError.h"
 #include "Token.h"
 
@@ -10,8 +10,8 @@ inline bool hadError = false;
 // Chapter 7 - Evaluating Expressions
 inline bool hadRuntimeError = false;
 
-static void report(int line, std::string_view where, 
-                   std::string message) {
+static void report(int line, std::string_view where,
+                   std::string_view message) {
   std::cerr <<
       "[line " << line << "] Error" << where << ": " << message <<
       "\n";
@@ -19,7 +19,7 @@ static void report(int line, std::string_view where,
 }
 
 // Chapter 6 - Parsing Expressions
-void error(Token token, std::string message) {
+void error(const Token& token, std::string_view message) {
   if (token.type == END_OF_FILE) {
     report(token.line, " at end", message);
   } else {
@@ -28,10 +28,9 @@ void error(Token token, std::string message) {
   }
 }
 
-void error(int line, std::string message) {
+void error(int line, std::string_view message) {
   report(line, "", message);
 }
-
 
 // Chapter 7 - Evaluating Expressions
 void runtimeError(const RuntimeError& error) {

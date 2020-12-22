@@ -1,28 +1,30 @@
 #pragma once
 
 #include <any>
+#include <functional> // less
 #include <map>
-#include <string_view>
+#include <memory>
+#include <string>
 #include "Error.h"
 #include "Token.h"
 
 class Environment {
-  Environment* const enclosing;
-  std::map<std::string_view, std::any> values;
+  std::shared_ptr<Environment> enclosing;
+  std::map<std::string, std::any, std::less<>> values;
 
 public:
   Environment()
     : enclosing{nullptr}
   {}
 
-  Environment(Environment* enclosing)
-    : enclosing{enclosing}
+  Environment(std::shared_ptr<Environment> enclosing)
+    : enclosing{std::move(enclosing)}
   {}
 
   std::any get(const Token& name) {
-    auto key = values.find(name.lexeme);
-    if (key != values.end()) {
-      return values[name.lexeme];
+    auto elem = values.find(name.lexeme);
+    if (elem != values.end()) {
+      return elem->second;
     }
 
     if (enclosing != nullptr) return enclosing->get(name);
@@ -31,15 +33,15 @@ public:
         "Undefined variable '" + std::string{name.lexeme} + "'.");
   }
 
-  void assign(const Token& name, const std::any& value) {
-    auto key = values.find(name.lexeme);
-    if (key != values.end()) {
-      values[name.lexeme] = value;
+  void assign(const Token& name, std::any value) {
+    auto elem = values.find(name.lexeme);
+    if (elem != values.end()) {
+      elem->second = std::move(value);
       return;
     }
 
     if (enclosing != nullptr) {
-      enclosing->assign(name, value);
+      enclosing->assign(name, std::move(value));
       return;
     }
 
@@ -47,7 +49,7 @@ public:
         "Undefined variable '" + std::string{name.lexeme} + "'.");
   }
 
-  void define(std::string_view name, const std::any& value) {
-    values[name] = value;
+  void define(std::string_view name, std::any value) {
+    values[std::string{name}] = std::move(value);
   }
 };

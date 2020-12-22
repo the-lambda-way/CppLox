@@ -1,9 +1,10 @@
 #include <fstream>      // readFile
 #include <iostream>     // std::getline
+#include <memory>
 #include <string>
 #include <vector>
 #include "Error.h"
-#include "AstPrinter.h"
+// #include "AstPrinter.h"
 #include "Scanner.h"
 
 // Chapter 7 - Evaluating Expressions
@@ -36,7 +37,7 @@ Interpreter interpreter{};
 //   std::vector<Token> tokens = scanner.scanTokens();
 
 //   Parser parser {tokens};
-//   Expr* expression = parser.parse();
+//   std::shared_ptr<Expr> expression = parser.parse();
 
 //   // Stop if there was a syntax error.
 //   if (hadError) return;
@@ -53,16 +54,12 @@ void run(std::string_view source) {
   std::vector<Token> tokens = scanner.scanTokens();
 
   Parser parser {tokens};
-  std::vector<Stmt*> statements = parser.parse();
+  std::vector<std::shared_ptr<Stmt>> statements = parser.parse();
 
   // Stop if there was a syntax error.
   if (hadError) return;
 
   interpreter.interpret(statements);
-
-  for (Stmt* statement : statements) {
-    delete statement;
-  }
 }
 
 // source: http://insanecoding.blogspot.com/2011/11/how-to-read-in-file-in-c.html

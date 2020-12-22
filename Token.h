@@ -20,7 +20,7 @@ public:
         text = std::string{lexeme};
         break;
       case (STRING):
-        text = std::string{std::any_cast<std::string_view>(literal)};
+        text = std::any_cast<std::string>(literal);
         break;
       case (NUMBER):
         text = std::to_string(std::any_cast<double>(literal));
@@ -35,6 +35,6 @@ public:
         text = "nil";
     }
 
-    return ::toString(type) + " " + std::string{lexeme} + " " +  text;
+    return ::toString(type) + " " + std::string{lexeme} + " " + text;
   }
 };

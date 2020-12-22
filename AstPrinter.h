@@ -28,9 +28,9 @@ public:
   std::any visitLiteralExpr(Literal* expr) override {
     auto& value_type = expr->value.type();
 
-    if (value_type == typeid(std::string_view)) {
+    if (value_type == typeid(std::string)) {
       return std::string{
-        std::any_cast<std::string_view>(expr->value)
+        std::any_cast<std::string>(expr->value)
       };
     } else if (value_type == typeid(double)) {
       return std::to_string(std::any_cast<double>(expr->value));

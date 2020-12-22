@@ -1,20 +1,56 @@
 #pragma once
 
+#include <any>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 
 // Chapter 8 - Statements and State
 #include <vector>
 
+// Chapter 10 - Functions
+#include <chrono>
+#include <string>
+
 #include "Error.h"
 #include "Expr.h"
+
+// Chapter 7 - Evaluating Expressions
+#include "RuntimeError.h"
 
 // Chapter 8 - Statements and State
 #include "Environment.h"
 #include "Stmt.h"
 
-// Chapter 7 - Evaluating Expressions
-#include "RuntimeError.h"
+// Chapter 10 - Functions
+#include "LoxCallable.h"
+#include "Return.h"
+
+class LoxFunction: public LoxCallable {
+  std::shared_ptr<Function> declaration;
+  std::shared_ptr<Environment> closure;
+public:
+  // LoxFunction(std::shared_ptr<Function> declaration);
+  LoxFunction(std::shared_ptr<Function> declaration,
+              std::shared_ptr<Environment> closure);
+  std::string toString() override;
+  int arity() override;
+  std::any call(Interpreter& interpreter,
+                std::vector<std::any> arguments) override;
+};
+
+class NativeClock: public LoxCallable {
+public:
+  int arity() override { return 0; }
+
+  std::any call(Interpreter& interpreter,
+                std::vector<std::any> arguments) override {
+    auto ticks = std::chrono::system_clock::now().time_since_epoch();
+    return std::chrono::duration<double>{ticks}.count() / 1000.0;
+  }
+
+  std::string toString() override { return "<native fn>"; }
+};
 
 // class Interpreter: public ExprVisitor {
 
@@ -22,10 +58,22 @@
 class Interpreter: public ExprVisitor,
                    public StmtVisitor {
   // Chapter 8 - Statements and State
-  Environment* environment = new Environment{};
+  // std::shared_ptr<Environment> environment {new Environment};
+
+  // Chapter 10 - Functions
+public: std::shared_ptr<Environment> globals {new Environment};
+private: std::shared_ptr<Environment> environment = globals;
 
 public:
-  // void interpret(Expr* expression) const {
+  // Chapter 10 - Functions
+  Interpreter() {
+    // See the comment in visitFunctionStmt for why this should be
+    // stored through a base pointer.
+    globals->define("clock",
+        std::shared_ptr<LoxCallable>(new NativeClock));
+  }
+
+  // void interpret(std::shared_ptr<Expr> expression) const {
   //   try {
   //     std::any value = evaluate(expression);
   //     std::cout << stringify(value) << "\n";
@@ -35,9 +83,10 @@ public:
   // }
 
   // Chapter 8 - Statements and State
-  void interpret(std::vector<Stmt*> statements) {
+  void interpret(
+      const std::vector<std::shared_ptr<Stmt>>& statements) {
     try {
-      for (Stmt* statement : statements) {
+      for (auto&& statement : statements) {
         execute(statement);
       }
     } catch (RuntimeError error) {
@@ -46,24 +95,25 @@ public:
   }
 
 private:
-  std::any evaluate(Expr* expr) {
-    return expr->accept(this);
+  std::any evaluate(std::shared_ptr<Expr> expr) {
+    return expr->accept(*this);
   }
 
   // Chapter 8 - Statements and State
-  void execute(Stmt* stmt) {
-    stmt->accept(this);
+  void execute(std::shared_ptr<Stmt> stmt) {
+    stmt->accept(*this);
   }
 
 public:
   // Chapter 8 - Statements and State
-  void executeBlock(std::vector<Stmt*> statements,
-                   Environment* environment) {
-    Environment* previous = this->environment;
+  void executeBlock(
+      const std::vector<std::shared_ptr<Stmt>>& statements,
+      std::shared_ptr<Environment> environment) {
+    auto previous = this->environment;
     try {
       this->environment = environment;
 
-      for (Stmt* statement : statements) {
+      for (auto&& statement : statements) {
         execute(statement);
       }
     } catch (...) {
@@ -74,18 +124,36 @@ public:
     this->environment = previous;
   }
 
-  std::any visitBlockStmt(Block* stmt) override {
-    executeBlock(stmt->statements, new Environment{environment});
+  std::any visitBlockStmt(std::shared_ptr<Block> stmt) override {
+    executeBlock(stmt->statements,
+                 std::make_unique<Environment>(environment));
     return {};
   }
 
-  std::any visitExpressionStmt(Expression* stmt) override {
+  std::any visitExpressionStmt(
+      std::shared_ptr<Expression> stmt) override {
     evaluate(stmt->expression);
     return {};
   }
 
+  // Chapter 10 - Functions
+  std::any visitFunctionStmt(
+      std::shared_ptr<Function> stmt) override {
+    // Once a function gets stored in our environment, we lose its
+    // type information (due to being stored in a std::any object).
+    // This prevents us from type checking it as a LoxCallable when
+    // we visit the AST. Since we only use functions through
+    // LoxCallable's interface, it is safe to store the function in a
+    // pointer to its base.
+    // std::shared_ptr<LoxCallable> function{new LoxFunction{stmt}};
+    std::shared_ptr<LoxCallable> function{
+        new LoxFunction{stmt, environment}};
+    environment->define(stmt->name.lexeme, function);
+    return {};
+  }
+
   // Chapter 9 - Control Flow
-  std::any visitIfStmt(If* stmt) override {
+  std::any visitIfStmt(std::shared_ptr<If> stmt) override {
     if (isTruthy(evaluate(stmt->condition))) {
       execute(stmt->thenBranch);
     } else if (stmt->elseBranch != nullptr) {
@@ -94,38 +162,46 @@ public:
     return {};
   }
 
-  std::any visitPrintStmt(Print* stmt) override {
+  std::any visitPrintStmt(std::shared_ptr<Print> stmt) override {
     std::any value = evaluate(stmt->expression);
     std::cout << stringify(value) << "\n";
     return {};
   }
 
+  // Chapter 10 - Functions
+  std::any visitReturnStmt(std::shared_ptr<Return> stmt) override {
+    std::any value = nullptr;
+    if (stmt->value != nullptr) value = evaluate(stmt->value);
+
+    throw LoxReturn{value};
+  }
+
   // Chapter 8 - Statements and State
-  std::any visitVarStmt(Var* stmt) override {
+  std::any visitVarStmt(std::shared_ptr<Var> stmt) override {
     std::any value = nullptr;
     if (stmt->initializer != nullptr) {
       value = evaluate(stmt->initializer);
     }
 
-    environment->define(stmt->name.lexeme, value);
+    environment->define(stmt->name.lexeme, std::move(value));
     return {};
   }
 
   // Chapter 9 - Control Flow
-  std::any visitWhileStmt(While* stmt) override {
+  std::any visitWhileStmt(std::shared_ptr<While> stmt) override {
     while (isTruthy(evaluate(stmt->condition))) {
       execute(stmt->body);
     }
     return {};
   }
 
-  std::any visitAssignExpr(Assign* expr) override {
+  std::any visitAssignExpr(std::shared_ptr<Assign> expr) override {
     std::any value = evaluate(expr->value);
     environment->assign(expr->name, value);
     return value;
   }
 
-  std::any visitBinaryExpr(Binary* expr) override {
+  std::any visitBinaryExpr(std::shared_ptr<Binary> expr) override {
     std::any left = evaluate(expr->left);
     std::any right = evaluate(expr->right);
 
@@ -151,17 +227,16 @@ public:
         return std::any_cast<double>(left) -
                std::any_cast<double>(right);
       case PLUS:
-        checkNumberOperands(expr->op, left, right);
         if (left.type() == typeid(double) &&
             right.type() == typeid(double)) {
           return std::any_cast<double>(left) +
                  std::any_cast<double>(right);
         }
 
-        if (left.type() == typeid(std::string_view) &&
-            right.type() == typeid(std::string_view)) {
-          return std::string{std::any_cast<std::string_view>(left)} +
-                 std::string{std::any_cast<std::string_view>(right)};
+        if (left.type() == typeid(std::string) &&
+            right.type() == typeid(std::string)) {
+          return std::any_cast<std::string>(left) +
+                 std::any_cast<std::string>(right);
         }
 
         // break;
@@ -184,16 +259,42 @@ public:
     return nullptr;
   }
 
-  std::any visitGroupingExpr(Grouping* expr) override {
+  // Chapter 10 - Functions
+  std::any visitCallExpr(std::shared_ptr<Call> expr) override {
+    std::any callee = evaluate(expr->callee);
+
+    std::vector<std::any> arguments;
+    for (auto&& argument : expr->arguments) {
+      arguments.push_back(evaluate(argument));
+    }
+
+    if (callee.type() != typeid(std::shared_ptr<LoxCallable>)) {
+      throw RuntimeError{expr->paren,
+          "Can only call functions and classes."};
+    }
+
+    auto function = std::any_cast<
+        std::shared_ptr<LoxCallable>>(callee);
+    if (arguments.size() != function->arity()) {
+      throw RuntimeError{expr->paren, "Expected " +
+          std::to_string(function->arity()) + " arguments but got " +
+          std::to_string(arguments.size()) + "."};
+    }
+
+    return function->call(*this, std::move(arguments));
+  }
+
+  std::any visitGroupingExpr(
+      std::shared_ptr<Grouping> expr) override {
     return evaluate(expr->expression);
   }
 
-  std::any visitLiteralExpr(Literal* expr) override {
+  std::any visitLiteralExpr(std::shared_ptr<Literal> expr) override {
     return expr->value;
   }
 
   // Chapter 9 - Control Flow
-  std::any visitLogicalExpr(Logical* expr) override {
+  std::any visitLogicalExpr(std::shared_ptr<Logical> expr) override {
     std::any left = evaluate(expr->left);
 
     if (expr->op.type == OR) {
@@ -205,7 +306,7 @@ public:
     return evaluate(expr->right);
   }
 
-  std::any visitUnaryExpr(Unary* expr) override {
+  std::any visitUnaryExpr(std::shared_ptr<Unary> expr) override {
     std::any right = evaluate(expr->right);
 
     switch (expr->op.type) {
@@ -221,18 +322,21 @@ public:
   }
 
   // Chapter 8 - Statements and State
-  std::any visitVariableExpr(Variable* expr) override {
+  std::any visitVariableExpr(
+      std::shared_ptr<Variable> expr) override {
     return environment->get(expr->name);
   }
 
 private:
-  void checkNumberOperand(const Token& op, std::any operand) const {
+  void checkNumberOperand(const Token& op,
+                          const std::any& operand) const {
     if (operand.type() == typeid(double)) return;
     throw RuntimeError{op, "Operand must be a number."};
   }
 
   void checkNumberOperands(const Token& op,
-                           std::any left, std::any right) const {
+                           const std::any& left,
+                           const std::any& right) const {
     if (left.type() == typeid(double) &&
         right.type() == typeid(double)) {
       return;
@@ -241,7 +345,7 @@ private:
     throw RuntimeError{op, "Operands must be numbers."};
   }
 
-  bool isTruthy(std::any object) {
+  bool isTruthy(const std::any& object) {
     if (object.type() == typeid(nullptr)) return false;
     if (object.type() == typeid(bool)) {
       return std::any_cast<bool>(object);
@@ -249,16 +353,16 @@ private:
     return true;
   }
 
-  bool isEqual(std::any a, std::any b) {
+  bool isEqual(const std::any& a, const std::any& b) {
     if (a.type() == typeid(nullptr) && b.type() == typeid(nullptr)) {
       return true;
     }
     if (a.type() == typeid(nullptr)) return false;
 
-    if (a.type() == typeid(std::string_view) &&
-        b.type() == typeid(std::string_view)) {
-      return std::any_cast<std::string_view>(a) ==
-             std::any_cast<std::string_view>(b);
+    if (a.type() == typeid(std::string) &&
+        b.type() == typeid(std::string)) {
+      return std::any_cast<std::string>(a) ==
+             std::any_cast<std::string>(b);
     }
     if (a.type() == typeid(double) && b.type() == typeid(double)) {
       return std::any_cast<double>(a) == std::any_cast<double>(b);
@@ -270,11 +374,12 @@ private:
     return false;
   }
 
-  std::string stringify(std::any object) {
+  std::string stringify(const std::any& object) {
     if (object.type() == typeid(nullptr)) return "nil";
 
     if (object.type() == typeid(double)) {
-      std::string text = std::to_string(std::any_cast<double>(object));
+      std::string text = std::to_string(
+          std::any_cast<double>(object));
       if (text[text.length() - 1] == '0' &&
           text[text.length() - 2] == '.') {
         text = text.substr(0, text.length() - 2);
@@ -282,8 +387,8 @@ private:
       return text;
     }
 
-    if (object.type() == typeid(std::string_view)) {
-      return std::string{std::any_cast<std::string_view>(object)};
+    if (object.type() == typeid(std::string)) {
+      return std::any_cast<std::string>(object);
     }
 
     if (object.type() == typeid(bool)) {
@@ -293,3 +398,8 @@ private:
     return "";
   }
 };
+
+// Chapter 10 - Functions
+// A little ugly to include this down here, but it seems to be the
+// simplest way to maintaining everything in headers.
+#include "LoxFunction.h"
