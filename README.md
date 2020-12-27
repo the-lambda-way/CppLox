@@ -41,7 +41,7 @@ Run `make ast_printer` to compile AstPrinterDriver.cpp.
 
 # Current Progress
 
-Finished through Chapter 10.
+Finished through Chapter 11.
 
 
 # License
