@@ -30,37 +30,37 @@ struct Stmt {
   virtual std::any accept(StmtVisitor& visitor) = 0;
 };
 
-struct Block: Stmt, std::enable_shared_from_this<Block> {
+struct Block: Stmt, public std::enable_shared_from_this<Block> {
   Block(std::vector<std::shared_ptr<Stmt>> statements)
     : statements{std::move(statements)}
   {}
 
   std::any accept(StmtVisitor& visitor) override {
-    return visitor.visitBlockStmt(this->shared_from_this());
+    return visitor.visitBlockStmt(shared_from_this());
   }
 
   const std::vector<std::shared_ptr<Stmt>> statements;
 };
 
-struct Expression: Stmt, std::enable_shared_from_this<Expression> {
+struct Expression: Stmt, public std::enable_shared_from_this<Expression> {
   Expression(std::shared_ptr<Expr> expression)
     : expression{std::move(expression)}
   {}
 
   std::any accept(StmtVisitor& visitor) override {
-    return visitor.visitExpressionStmt(this->shared_from_this());
+    return visitor.visitExpressionStmt(shared_from_this());
   }
 
   const std::shared_ptr<Expr> expression;
 };
 
-struct Function: Stmt, std::enable_shared_from_this<Function> {
+struct Function: Stmt, public std::enable_shared_from_this<Function> {
   Function(Token name, std::vector<Token> params, std::vector<std::shared_ptr<Stmt>> body)
     : name{std::move(name)}, params{std::move(params)}, body{std::move(body)}
   {}
 
   std::any accept(StmtVisitor& visitor) override {
-    return visitor.visitFunctionStmt(this->shared_from_this());
+    return visitor.visitFunctionStmt(shared_from_this());
   }
 
   const Token name;
@@ -68,13 +68,13 @@ struct Function: Stmt, std::enable_shared_from_this<Function> {
   const std::vector<std::shared_ptr<Stmt>> body;
 };
 
-struct If: Stmt, std::enable_shared_from_this<If> {
+struct If: Stmt, public std::enable_shared_from_this<If> {
   If(std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> thenBranch, std::shared_ptr<Stmt> elseBranch)
     : condition{std::move(condition)}, thenBranch{std::move(thenBranch)}, elseBranch{std::move(elseBranch)}
   {}
 
   std::any accept(StmtVisitor& visitor) override {
-    return visitor.visitIfStmt(this->shared_from_this());
+    return visitor.visitIfStmt(shared_from_this());
   }
 
   const std::shared_ptr<Expr> condition;
@@ -82,51 +82,51 @@ struct If: Stmt, std::enable_shared_from_this<If> {
   const std::shared_ptr<Stmt> elseBranch;
 };
 
-struct Print: Stmt, std::enable_shared_from_this<Print> {
+struct Print: Stmt, public std::enable_shared_from_this<Print> {
   Print(std::shared_ptr<Expr> expression)
     : expression{std::move(expression)}
   {}
 
   std::any accept(StmtVisitor& visitor) override {
-    return visitor.visitPrintStmt(this->shared_from_this());
+    return visitor.visitPrintStmt(shared_from_this());
   }
 
   const std::shared_ptr<Expr> expression;
 };
 
-struct Return: Stmt, std::enable_shared_from_this<Return> {
+struct Return: Stmt, public std::enable_shared_from_this<Return> {
   Return(Token keyword, std::shared_ptr<Expr> value)
     : keyword{std::move(keyword)}, value{std::move(value)}
   {}
 
   std::any accept(StmtVisitor& visitor) override {
-    return visitor.visitReturnStmt(this->shared_from_this());
+    return visitor.visitReturnStmt(shared_from_this());
   }
 
   const Token keyword;
   const std::shared_ptr<Expr> value;
 };
 
-struct Var: Stmt, std::enable_shared_from_this<Var> {
+struct Var: Stmt, public std::enable_shared_from_this<Var> {
   Var(Token name, std::shared_ptr<Expr> initializer)
     : name{std::move(name)}, initializer{std::move(initializer)}
   {}
 
   std::any accept(StmtVisitor& visitor) override {
-    return visitor.visitVarStmt(this->shared_from_this());
+    return visitor.visitVarStmt(shared_from_this());
   }
 
   const Token name;
   const std::shared_ptr<Expr> initializer;
 };
 
-struct While: Stmt, std::enable_shared_from_this<While> {
+struct While: Stmt, public std::enable_shared_from_this<While> {
   While(std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> body)
     : condition{std::move(condition)}, body{std::move(body)}
   {}
 
   std::any accept(StmtVisitor& visitor) override {
-    return visitor.visitWhileStmt(this->shared_from_this());
+    return visitor.visitWhileStmt(shared_from_this());
   }
 
   const std::shared_ptr<Expr> condition;

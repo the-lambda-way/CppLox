@@ -1,7 +1,6 @@
 CXX      := g++
-INCLUDES :=
-CXXFLAGS := -ggdb -std=c++17 $(INCLUDES)
-CPPFLAGS := -MMD -flto
+CXXFLAGS := -ggdb -std=c++17
+CPPFLAGS := -MMD
 
 COMPILE  := $(CXX) $(CXXFLAGS) $(CPPFLAGS)
 
@@ -75,6 +74,34 @@ test-functions3:
 	@make jlox >/dev/null
 	@echo "testing jlox with test-functions3.lox ..."
 	@./jlox test-functions3.lox | diff -u --color test-functions3.lox.expected -;
+
+
+.PHONY: test-resolving
+test-resolving:
+	@make jlox >/dev/null
+	@echo "testing jlox with test-resolving.lox ..."
+	@./jlox test-resolving.lox | diff -u --color test-resolving.lox.expected -;
+
+
+.PHONY: test-resolving2
+test-resolving2:
+	@make jlox >/dev/null
+	@echo "testing jlox with test-resolving2.lox ..."
+	@-./jlox test-resolving2.lox 2>&1 | diff -u --color test-resolving2.lox.expected -;
+
+
+.PHONY: test-resolving3
+test-resolving3:
+	@make jlox >/dev/null
+	@echo "testing jlox with test-resolving3.lox ..."
+	@./jlox test-resolving3.lox 2>&1 | diff -u --color test-resolving3.lox.expected -;
+
+
+.PHONY: test-resolving4
+test-resolving4:
+	@make jlox >/dev/null
+	@echo "testing jlox with test-resolving4.lox ..."
+	@./jlox test-resolving4.lox 2>&1 | diff -u --color test-resolving4.lox.expected -;
 
 
 generate_ast: GenerateAst.o

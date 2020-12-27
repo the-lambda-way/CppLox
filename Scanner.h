@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <string>
 #include <string_view>
 #include <vector>
 #include "Error.h"
@@ -20,7 +21,7 @@ public:
     : source {source}
   {}
 
-  const std::vector<Token>& scanTokens() {
+  std::vector<Token> scanTokens() {
     while (!isAtEnd()) {
       // We are at the beginning of the next lexeme.
       start = current;
@@ -192,7 +193,7 @@ private:
 
   template <class T>
   void addToken(TokenType type, T literal) {
-    std::string_view text = source.substr(start, current - start);
+    std::string text {source.substr(start, current - start)};
     tokens.push_back(Token{type, text, literal, line});
   }
 };

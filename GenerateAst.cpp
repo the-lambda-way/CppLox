@@ -97,7 +97,8 @@ void defineType(
     std::ofstream& writer, std::string_view baseName,
     std::string_view className, std::string_view fieldList) {
   writer << "struct " << className << ": " << baseName <<
-            ", std::enable_shared_from_this<" << className << "> {\n";
+            ", public std::enable_shared_from_this<" <<
+            className << "> {\n";
 
   // Constructor.
   writer << "  " << className << "(";
@@ -129,7 +130,7 @@ void defineType(
             "  std::any accept(" << baseName <<
             "Visitor& visitor) override {\n"
             "    return visitor.visit" << className << baseName <<
-            "(this->shared_from_this());\n"
+            "(shared_from_this());\n"
             "  }\n";
 
   // Fields.

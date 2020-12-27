@@ -1,14 +1,14 @@
 #pragma once
 
 #include <any>
-#include <string_view>
+#include <string>
 #include "TokenType.h"
 
 class Token
 {
 public:
   const TokenType type;
-  const std::string_view lexeme;
+  const std::string lexeme;
   const std::any literal;
   const int line;
 
@@ -17,7 +17,7 @@ public:
 
     switch (type) {
       case (IDENTIFIER):
-        text = std::string{lexeme};
+        text = lexeme;
         break;
       case (STRING):
         text = std::any_cast<std::string>(literal);
@@ -35,6 +35,6 @@ public:
         text = "nil";
     }
 
-    return ::toString(type) + " " + std::string{lexeme} + " " + text;
+    return ::toString(type) + " " + lexeme + " " + text;
   }
 };

@@ -4,14 +4,6 @@
 #include <iostream>
 #include <memory>
 #include <stdexcept>
-
-// Chapter 8 - Statements and State
-#include <vector>
-
-// Chapter 10 - Functions
-#include <chrono>
-#include <string>
-
 #include "Error.h"
 #include "Expr.h"
 
@@ -19,12 +11,18 @@
 #include "RuntimeError.h"
 
 // Chapter 8 - Statements and State
+#include <vector>
 #include "Environment.h"
 #include "Stmt.h"
 
 // Chapter 10 - Functions
+#include <chrono>
+#include <string>
 #include "LoxCallable.h"
 #include "Return.h"
+
+// Chapter 11 - Resolving and Binding
+#include <map>
 
 class LoxFunction: public LoxCallable {
   std::shared_ptr<Function> declaration;
@@ -61,8 +59,13 @@ class Interpreter: public ExprVisitor,
   // std::shared_ptr<Environment> environment {new Environment};
 
   // Chapter 10 - Functions
-public: std::shared_ptr<Environment> globals {new Environment};
-private: std::shared_ptr<Environment> environment = globals;
+public:
+  std::shared_ptr<Environment> globals{new Environment};
+private:
+  std::shared_ptr<Environment> environment = globals;
+
+  // Chapter 11 - Resolving and Binding
+  std::map<std::shared_ptr<Expr>, int> locals;
 
 public:
   // Chapter 10 - Functions
@@ -70,7 +73,7 @@ public:
     // See the comment in visitFunctionStmt for why this should be
     // stored through a base pointer.
     globals->define("clock",
-        std::shared_ptr<LoxCallable>(new NativeClock));
+        std::shared_ptr<LoxCallable>{new NativeClock});
   }
 
   // void interpret(std::shared_ptr<Expr> expression) const {
@@ -86,7 +89,7 @@ public:
   void interpret(
       const std::vector<std::shared_ptr<Stmt>>& statements) {
     try {
-      for (auto&& statement : statements) {
+      for (const std::shared_ptr<Stmt>& statement : statements) {
         execute(statement);
       }
     } catch (RuntimeError error) {
@@ -105,6 +108,11 @@ private:
   }
 
 public:
+  // Chapter 11 - Resolving and Binding
+  void resolve(std::shared_ptr<Expr> expr, int depth) {
+    locals[expr] = depth;
+  }
+
   // Chapter 8 - Statements and State
   void executeBlock(
       const std::vector<std::shared_ptr<Stmt>>& statements,
@@ -113,7 +121,7 @@ public:
     try {
       this->environment = environment;
 
-      for (auto&& statement : statements) {
+      for (const std::shared_ptr<Stmt>& statement : statements) {
         execute(statement);
       }
     } catch (...) {
@@ -197,7 +205,17 @@ public:
 
   std::any visitAssignExpr(std::shared_ptr<Assign> expr) override {
     std::any value = evaluate(expr->value);
-    environment->assign(expr->name, value);
+    // environment->assign(expr->name, value);
+
+    // Chapter 11 - Resolving and Binding
+    auto elem = locals.find(expr);
+    if (elem != locals.end()) {
+      int distance = elem->second;
+      environment->assignAt(distance, expr->name, value);
+    } else {
+      globals->assign(expr->name, value);
+    }
+
     return value;
   }
 
@@ -264,7 +282,7 @@ public:
     std::any callee = evaluate(expr->callee);
 
     std::vector<std::any> arguments;
-    for (auto&& argument : expr->arguments) {
+    for (const std::shared_ptr<Expr>& argument : expr->arguments) {
       arguments.push_back(evaluate(argument));
     }
 
@@ -324,10 +342,25 @@ public:
   // Chapter 8 - Statements and State
   std::any visitVariableExpr(
       std::shared_ptr<Variable> expr) override {
-    return environment->get(expr->name);
+    // return environment->get(expr->name);
+
+    // Chapter 11 - Resolving and Binding
+    return lookUpVariable(expr->name, expr);
   }
 
 private:
+  // Chapter 11 - Resolving and Binding
+  std::any lookUpVariable(const Token& name,
+                          std::shared_ptr<Expr> expr) {
+    auto elem = locals.find(expr);
+    if (elem != locals.end()) {
+      int distance = elem->second;
+      return environment->getAt(distance, name.lexeme);
+    } else {
+      return globals->get(name);
+    }
+  }
+
   void checkNumberOperand(const Token& op,
                           const std::any& operand) const {
     if (operand.type() == typeid(double)) return;
@@ -401,5 +434,5 @@ private:
 
 // Chapter 10 - Functions
 // A little ugly to include this down here, but it seems to be the
-// simplest way to maintaining everything in headers.
+// simplest way to maintain everything in headers.
 #include "LoxFunction.h"

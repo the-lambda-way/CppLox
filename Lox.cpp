@@ -13,6 +13,8 @@
 // Chapter 6 - Parsing Expressions
 #include "Parser.h"
 
+// Chapter 11 - Resolving and Binding
+#include "Resolver.h"
 
 // Chapter 7 - Evaluating Expressions
 Interpreter interpreter{};
@@ -22,7 +24,7 @@ Interpreter interpreter{};
 //   std::vector<Token> tokens = scanner.scanTokens();
 
 //   // For now, just print the tokens.
-//   for (Token token : tokens) {
+//   for (const Token& token : tokens) {
 //     std::cout << token.toString() << "\n";
 //   }
 
@@ -57,6 +59,13 @@ void run(std::string_view source) {
   std::vector<std::shared_ptr<Stmt>> statements = parser.parse();
 
   // Stop if there was a syntax error.
+  if (hadError) return;
+
+  // Chapter 11 - Resolving and Binding
+  Resolver resolver{interpreter};
+  resolver.resolve(statements);
+
+  // Stop if there was a resolution error.
   if (hadError) return;
 
   interpreter.interpret(statements);
