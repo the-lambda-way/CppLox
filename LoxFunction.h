@@ -13,6 +13,13 @@ LoxFunction::LoxFunction(std::shared_ptr<Function> declaration,
   : declaration{std::move(declaration)}, closure{std::move(closure)}
 {}
 
+std::shared_ptr<LoxFunction> LoxInstance::bind(
+    std::shared_ptr<LoxInstance> instance) {
+  auto environment = std::make_shared<Environment>(closure);
+  environment->define("this", instance);
+  return std::make_shared<LoxFunction>(declaration, environment);
+}
+
 std::string LoxFunction::toString() {
   return "<fn " + declaration->name.lexeme + ">";
 }

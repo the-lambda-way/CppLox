@@ -33,7 +33,7 @@ void error(int line, std::string_view message) {
 
 // Chapter 7 - Evaluating Expressions
 void runtimeError(const RuntimeError& error) {
-  std::cout << error.what() <<
-      "\n[line] " << error.token.line << "]\n";
+  std::cerr << error.what() <<
+      "\n[line " << error.token.line << "]\n";
   hadRuntimeError = true;
 }

@@ -206,11 +206,18 @@ int main(int argc, char* argv[]) {
     "Call     : Expr* callee, Token paren,"
               " std::vector<Expr*> arguments",
 
+    // Chapter 12 - Classes
+    "Get      : Expr* object, Token name",
+
     "Grouping : Expr* expression",
     "Literal  : std::any value",
 
     // Chapter 9 - Control Flow
     "Logical  : Expr* left, Token op, Expr* right",
+
+    // Chapter 12 - Classes
+    "Set      : Expr* object, Token name, Expr* value",
+    "This     : Token keyword",
 
     "Unary    : Token op, Expr* right"
 
@@ -222,6 +229,10 @@ int main(int argc, char* argv[]) {
   // Chapter 8 - Statements and State
   defineAst(outputDir, "Stmt", {
     "Block      : std::vector<Stmt*> statements",
+
+    // Chapter 12 - Classes
+    "Class      : Token name, std::vector<Function*> methods",
+
     "Expression : Expr* expression",
 
     // Chapter 10 - Functions

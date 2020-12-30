@@ -13,6 +13,9 @@ class Resolver: public ExprVisitor, public StmtVisitor {
   enum class FunctionType {
     NONE,
     FUNCTION
+
+    // Chapter 12 - Classes
+    , METHOD
   };
 
   FunctionType currentFunction = FunctionType::NONE;
@@ -32,6 +35,24 @@ public:
     beginScope();
     resolve(stmt->statements);
     endScope();
+    return {};
+  }
+
+  // Chapter 12 - Classes
+  std::any visitClassStmt(std::shared_ptr<Class> stmt) override {
+    declare(stmt->name);
+    define(stmt->name);
+
+    beginScope();
+    scopes.back()["this"] = true;
+
+    for (std::shared_ptr<Function> method : stmt->methods) {
+      FunctionType declaration = FunctionType::METHOD;
+      resolveFunction(method, declaration);
+    }
+
+    endScope();
+
     return {};
   }
 
@@ -112,6 +133,12 @@ public:
     return {};
   }
 
+  // Chapter 12 - Classes
+  std::any visitGetExpr(std::shared_ptr<Get> expr) override {
+    resolve(expr->object);
+    return {};
+  }
+
   std::any visitGroupingExpr(
       std::shared_ptr<Grouping> expr) override {
     resolve(expr->expression);
@@ -125,6 +152,18 @@ public:
   std::any visitLogicalExpr(std::shared_ptr<Logical> expr) override {
     resolve(expr->left);
     resolve(expr->right);
+    return {};
+  }
+
+  // Chapter 12 - Classes
+  std::any visitSetExpr(std::shared_ptr<Set> expr) override {
+    resolve(expr->value);
+    resolve(expr->object);
+    return {};
+  }
+
+  std::any visitThisExpr(std::shared_ptr<This> expr) override {
+    resolveLocal(expr, expr->keyword);
     return {};
   }
 
@@ -198,7 +237,7 @@ private:
     scopes.back()[name.lexeme] = true;
   }
 
-  void resolveLocal(std::shared_ptr<Expr> expr, Token name) {
+  void resolveLocal(std::shared_ptr<Expr> expr, const Token& name) {
     for (int i = scopes.size() - 1; i >= 0; --i) {
       if (scopes[i].find(name.lexeme) != scopes[i].end()) {
         interpreter.resolve(expr, scopes.size() - 1 - i);

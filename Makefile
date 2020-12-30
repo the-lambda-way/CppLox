@@ -13,18 +13,18 @@ jlox: Lox.cpp
 	@$(COMPILE) $^ -o $@
 
 
-.PHONY: test-lex
-test-lex:
+.PHONY: test-lexing
+test-lexing:
 	@make jlox >/dev/null
-	@echo "testing jlox with test-lex.lox ..."
-	@./jlox test-lex.lox | diff -u --color test-lex.lox.expected -;
+	@echo "testing jlox with test-lexing.lox ..."
+	@./jlox test-lexing.lox | diff -u --color test-lexing.lox.expected -;
 
 
-.PHONY: test-parse
-test-parse:
+.PHONY: test-parsing
+test-parsing:
 	@make jlox >/dev/null
-	@echo "testing jlox with test-parse.lox ..."
-	@./jlox test-parse.lox | diff -u --color test-parse.lox.expected -;
+	@echo "testing jlox with test-parsing.lox ..."
+	@./jlox test-parsing.lox | diff -u --color test-parsing.lox.expected -;
 
 
 .PHONY: test-expressions
@@ -102,6 +102,48 @@ test-resolving4:
 	@make jlox >/dev/null
 	@echo "testing jlox with test-resolving4.lox ..."
 	@./jlox test-resolving4.lox 2>&1 | diff -u --color test-resolving4.lox.expected -;
+
+
+.PHONY: test-classes
+test-classes:
+	@make jlox >/dev/null
+	@echo "testing jlox with test-classes.lox ..."
+	@./jlox test-classes.lox | diff -u --color test-classes.lox.expected -;
+
+
+.PHONY: test-classes2
+test-classes2:
+	@make jlox >/dev/null
+	@echo "testing jlox with test-classes2.lox ..."
+	@./jlox test-classes2.lox | diff -u --color test-classes2.lox.expected -;
+
+
+.PHONY: test-classes3
+test-classes3:
+	@make jlox >/dev/null
+	@echo "testing jlox with test-classes3.lox ..."
+	@./jlox test-classes3.lox | diff -u --color test-classes3.lox.expected -;
+
+
+.PHONY: test-classes4
+test-classes4:
+	@make jlox >/dev/null
+	@echo "testing jlox with test-classes4.lox ..."
+	@./jlox test-classes4.lox | diff -u --color test-classes4.lox.expected -;
+
+
+.PHONY: test-classes5
+test-classes5:
+	@make jlox >/dev/null
+	@echo "testing jlox with test-classes5.lox ..."
+	@./jlox test-classes5.lox | diff -u --color test-classes5.lox.expected -;
+
+
+.PHONY: test-classes6
+test-classes6:
+	@make jlox >/dev/null
+	@echo "testing jlox with test-classes6.lox ..."
+	@./jlox test-classes6.lox | diff -u --color test-classes6.lox.expected -;
 
 
 generate_ast: GenerateAst.o

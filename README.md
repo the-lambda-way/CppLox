@@ -15,8 +15,8 @@ Tests can be run with a variant of `make test-X` to pass test-X.lox as input to 
 
 | Command           | Input                 | Expected                       | Chapter |
 | ----------------- | --------------------- | ------------------------------ | ------- |
-| test-lex          | test-lex.lox          | test-lex.lox.expected          | 4       |
-| test-parse        | test-parse.lox        | test-parse.lox.expected        | 6       |
+| test-lexing       | test-lexing.lox       | test-lexing.lox.expected       | 4       |
+| test-parsing      | test-parsing.lox      | test-parsing.lox.expected      | 6       |
 | test-expressions  | test-expressions.lox  | test-expressions.lox.expected  | 7       |
 | test-statements   | test-statements.lox   | test-statements.lox.expected   | 8       |
 | test-statements2  | test-statements2.lox  | test-statements2.lox.expected  | 8       |

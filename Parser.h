@@ -57,6 +57,9 @@ private:
   // Chapter 8 - Statements and State
   std::shared_ptr<Stmt> declaration() {
     try {
+      // Chapter 12 - Classes
+      if (match(CLASS)) return classDeclaration();
+
       // Chapter 10 - Functions
       if (match(FUN)) return function("function");
 
@@ -67,6 +70,22 @@ private:
       synchronize();
       return nullptr;
     }
+  }
+
+  // Chapter 12 - Classes
+  std::shared_ptr<Stmt> classDeclaration() {
+    Token name = consume(IDENTIFIER, "Expect class name.");
+    consume(LEFT_BRACE, "Expect '{' before class body.");
+
+    std::vector<std::shared_ptr<Function>> methods;
+    while (!check(RIGHT_BRACE) && !isAtEnd()) {
+      methods.push_back(function("method"));
+    }
+
+    consume(RIGHT_BRACE, "Expect '}' after class body");
+
+    return std::make_shared<Class>(std::move(name),
+                                   std::move(methods));
   }
 
   std::shared_ptr<Stmt> statement() {
@@ -246,6 +265,11 @@ private:
         return std::make_shared<Assign>(std::move(name), value);
       }
 
+      // Chapter 12 - Classes
+      else if (Get* get = dynamic_cast<Get*>(expr.get())) {
+        return std::make_shared<Set>(get->object, get->name, value);
+      }
+
       error(std::move(equals), "Invalid assignment target.");
     }
 
@@ -364,6 +388,15 @@ private:
     while (true) {
       if (match(LEFT_PAREN)) {
         expr = finishCall(expr);
+      // } else {
+      //   break;
+      // }
+
+      // Chapter 12 - Classes
+      } else if (match(DOT)) {
+        Token name = consume(IDENTIFIER,
+            "Expect property name after '.'.");
+        expr = std::make_shared<Get>(expr, std::move(name));
       } else {
         break;
       }
@@ -380,6 +413,9 @@ private:
     if (match(NUMBER, STRING)) {
       return std::make_shared<Literal>(previous().literal);
     }
+
+    // Chapter 12 - Classes
+    if (match(THIS)) return std::make_shared<This>(previous());
 
     // Chapter 8 - Statements and State
     if (match(IDENTIFIER)) {

@@ -7,9 +7,12 @@
 struct Assign;
 struct Binary;
 struct Call;
+struct Get;
 struct Grouping;
 struct Literal;
 struct Logical;
+struct Set;
+struct This;
 struct Unary;
 struct Variable;
 
@@ -17,9 +20,12 @@ struct ExprVisitor {
   virtual std::any visitAssignExpr(std::shared_ptr<Assign> expr) = 0;
   virtual std::any visitBinaryExpr(std::shared_ptr<Binary> expr) = 0;
   virtual std::any visitCallExpr(std::shared_ptr<Call> expr) = 0;
+  virtual std::any visitGetExpr(std::shared_ptr<Get> expr) = 0;
   virtual std::any visitGroupingExpr(std::shared_ptr<Grouping> expr) = 0;
   virtual std::any visitLiteralExpr(std::shared_ptr<Literal> expr) = 0;
   virtual std::any visitLogicalExpr(std::shared_ptr<Logical> expr) = 0;
+  virtual std::any visitSetExpr(std::shared_ptr<Set> expr) = 0;
+  virtual std::any visitThisExpr(std::shared_ptr<This> expr) = 0;
   virtual std::any visitUnaryExpr(std::shared_ptr<Unary> expr) = 0;
   virtual std::any visitVariableExpr(std::shared_ptr<Variable> expr) = 0;
   virtual ~ExprVisitor() = default;
@@ -70,6 +76,19 @@ struct Call: Expr, public std::enable_shared_from_this<Call> {
   const std::vector<std::shared_ptr<Expr>> arguments;
 };
 
+struct Get: Expr, public std::enable_shared_from_this<Get> {
+  Get(std::shared_ptr<Expr> object, Token name)
+    : object{std::move(object)}, name{std::move(name)}
+  {}
+
+  std::any accept(ExprVisitor& visitor) override {
+    return visitor.visitGetExpr(shared_from_this());
+  }
+
+  const std::shared_ptr<Expr> object;
+  const Token name;
+};
+
 struct Grouping: Expr, public std::enable_shared_from_this<Grouping> {
   Grouping(std::shared_ptr<Expr> expression)
     : expression{std::move(expression)}
@@ -106,6 +125,32 @@ struct Logical: Expr, public std::enable_shared_from_this<Logical> {
   const std::shared_ptr<Expr> left;
   const Token op;
   const std::shared_ptr<Expr> right;
+};
+
+struct Set: Expr, public std::enable_shared_from_this<Set> {
+  Set(std::shared_ptr<Expr> object, Token name, std::shared_ptr<Expr> value)
+    : object{std::move(object)}, name{std::move(name)}, value{std::move(value)}
+  {}
+
+  std::any accept(ExprVisitor& visitor) override {
+    return visitor.visitSetExpr(shared_from_this());
+  }
+
+  const std::shared_ptr<Expr> object;
+  const Token name;
+  const std::shared_ptr<Expr> value;
+};
+
+struct This: Expr, public std::enable_shared_from_this<This> {
+  This(Token keyword)
+    : keyword{std::move(keyword)}
+  {}
+
+  std::any accept(ExprVisitor& visitor) override {
+    return visitor.visitThisExpr(shared_from_this());
+  }
+
+  const Token keyword;
 };
 
 struct Unary: Expr, public std::enable_shared_from_this<Unary> {
