@@ -1,47 +1,34 @@
 #pragma once
 
+#include <any>
 #include <memory>
+#include <string>
+#include <vector>
 #include "LoxCallable.h"
-#include "Interpreter.h"
 
-// LoxFunction::LoxFunction(std::shared_ptr<Function> declaration)
-//   : declaration{std::move(declaration)}
-// {}
+class Environment;
+class Function;
+class Interprter;
+class LoxFunction;
+class LoxInstance;
 
-LoxFunction::LoxFunction(std::shared_ptr<Function> declaration,
-                         std::shared_ptr<Environment> closure)
-  : declaration{std::move(declaration)}, closure{std::move(closure)}
-{}
+class LoxFunction: public LoxCallable {
+  std::shared_ptr<Function> declaration;
+  std::shared_ptr<Environment> closure;
 
-std::shared_ptr<LoxFunction> LoxInstance::bind(
-    std::shared_ptr<LoxInstance> instance) {
-  auto environment = std::make_shared<Environment>(closure);
-  environment->define("this", instance);
-  return std::make_shared<LoxFunction>(declaration, environment);
-}
+  bool isInitializer;
 
-std::string LoxFunction::toString() {
-  return "<fn " + declaration->name.lexeme + ">";
-}
-
-int LoxFunction::arity() {
-  return declaration->params.size();
-}
-
-std::any LoxFunction::call(Interpreter& interpreter,
-                           std::vector<std::any> arguments) {
-  // std::shared_ptr<Environment> environment = interpreter.globals;
-  auto environment = std::make_shared<Environment>(closure);
-  for (int i = 0; i < declaration->params.size(); ++i) {
-    environment->define(declaration->params[i].lexeme,
-        arguments[i]);
-  }
-
-  // interpreter.executeBlock(declaration->body, environment);
-  try {
-    interpreter.executeBlock(declaration->body, environment);
-  } catch (LoxReturn returnValue) {
-    return returnValue.value;
-  }
-  return nullptr;
-}
+public:
+  // LoxFunction(std::shared_ptr<Function> declaration);
+  // LoxFunction(std::shared_ptr<Function> declaration,
+  //             std::shared_ptr<Environment> closure);
+  LoxFunction(std::shared_ptr<Function> declaration,
+              std::shared_ptr<Environment> closure,
+              bool isInitializer);
+  std::shared_ptr<LoxFunction> bind(
+      std::shared_ptr<LoxInstance> instance);
+  std::string toString() override;
+  int arity() override;
+  std::any call(Interpreter& interpreter,
+                std::vector<std::any> arguments) override;
+};

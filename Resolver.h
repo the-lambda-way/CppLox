@@ -10,21 +10,32 @@ class Resolver: public ExprVisitor, public StmtVisitor {
   Interpreter& interpreter;
   std::vector<std::map<std::string, bool>> scopes;
 
-  enum class FunctionType {
-    NONE,
-    FUNCTION
-
-    // Chapter 12 - Classes
-    , METHOD
-  };
-
-  FunctionType currentFunction = FunctionType::NONE;
-
 public:
   Resolver(Interpreter& interpreter)
     : interpreter{interpreter}
   {}
 
+private:
+  enum class FunctionType {
+    NONE,
+    FUNCTION
+
+    // Chapter 12 - Classes
+    , INITIALIZER
+    , METHOD
+  };
+
+  FunctionType currentFunction = FunctionType::NONE;
+
+  // Chapter 12 - Classes
+  enum class ClassType {
+    NONE,
+    CLASS
+  };
+
+  ClassType currentClass = ClassType::NONE;
+
+public:
   void resolve(const std::vector<std::shared_ptr<Stmt>>& statements) {
     for (const std::shared_ptr<Stmt>& statement : statements) {
       resolve(statement);
@@ -40,6 +51,9 @@ public:
 
   // Chapter 12 - Classes
   std::any visitClassStmt(std::shared_ptr<Class> stmt) override {
+    ClassType enclosingClass = currentClass;
+    currentClass = ClassType::CLASS;
+
     declare(stmt->name);
     define(stmt->name);
 
@@ -48,11 +62,16 @@ public:
 
     for (std::shared_ptr<Function> method : stmt->methods) {
       FunctionType declaration = FunctionType::METHOD;
+      if (method->name.lexeme == "init") {
+        declaration = FunctionType::INITIALIZER;
+      }
+
       resolveFunction(method, declaration);
     }
 
     endScope();
 
+    currentClass = enclosingClass;
     return {};
   }
 
@@ -90,6 +109,12 @@ public:
     }
 
     if (stmt->value != nullptr) {
+      // Chapter 12 - Classes
+      if (currentFunction == FunctionType::INITIALIZER) {
+        error(stmt->keyword,
+            "Can't return a value from an initializer.");
+      }
+
       resolve(stmt->value);
     }
 
@@ -163,6 +188,12 @@ public:
   }
 
   std::any visitThisExpr(std::shared_ptr<This> expr) override {
+    if (currentClass == ClassType::NONE) {
+      error(expr->keyword,
+          "Can't use 'this' outside of a class.");
+      return {};
+    }
+
     resolveLocal(expr, expr->keyword);
     return {};
   }

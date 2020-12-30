@@ -19,6 +19,7 @@
 #include <chrono>
 #include <string>
 #include "LoxCallable.h"
+#include "LoxFunction.h"
 #include "Return.h"
 
 // Chapter 11 - Resolving and Binding
@@ -26,21 +27,7 @@
 
 // Chapter 12 - Classes
 #include "LoxClass.h"
-
-class LoxFunction: public LoxCallable {
-  std::shared_ptr<Function> declaration;
-  std::shared_ptr<Environment> closure;
-public:
-  // LoxFunction(std::shared_ptr<Function> declaration);
-  LoxFunction(std::shared_ptr<Function> declaration,
-              std::shared_ptr<Environment> closure);
-  std::shared_ptr<LoxFunction> bind(
-      std::shared_ptr<LoxInstance> instance);
-  std::string toString() override;
-  int arity() override;
-  std::any call(Interpreter& interpreter,
-                std::vector<std::any> arguments) override;
-};
+#include "LoxInstance.h"
 
 class NativeClock: public LoxCallable {
 public:
@@ -152,7 +139,8 @@ public:
     std::map<std::string, std::shared_ptr<LoxFunction>> methods;
     for (std::shared_ptr<Function> method : stmt->methods) {
       auto function = std::make_shared<LoxFunction>(method,
-                                                    environment);
+          // environment);
+          environment, method->name.lexeme == "init");
       methods[method->name.lexeme] = function;
     }
 
@@ -172,7 +160,11 @@ public:
   std::any visitFunctionStmt(
       std::shared_ptr<Function> stmt) override {
     // auto function = std::make_shared<LoxFunction>(stmt);
-    auto function = std::make_shared<LoxFunction>(stmt, environment);
+    // auto function = std::make_shared<LoxFunction>(stmt, environment);
+
+    // Chapter 12 - Classes
+    auto function = std::make_shared<LoxFunction>(stmt, environment,
+                                                  false);
     environment->define(stmt->name.lexeme, function);
     return {};
   }
@@ -377,7 +369,7 @@ public:
   }
 
   std::any visitThisExpr(std::shared_ptr<This> expr) override {
-    return lookupVariable(expr->keyword, expr);
+    return lookUpVariable(expr->keyword, expr);
   }
 
   std::any visitUnaryExpr(std::shared_ptr<Unary> expr) override {
@@ -507,8 +499,3 @@ private:
     return "Error in stringify: object type not recognized.";
   }
 };
-
-// Chapter 10 - Functions
-// A little ugly to include this down here, but it seems to be the
-// simplest way to maintain everything in headers.
-#include "LoxFunction.h"

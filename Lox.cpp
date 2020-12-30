@@ -16,6 +16,13 @@
 // Chapter 11 - Resolving and Binding
 #include "Resolver.h"
 
+// It's not good practice to include .cpp files, but in our case it
+// allows us to lay out the files similarly to the Java code while
+// avoiding circular dependencies.
+#include "LoxFunction.cpp" // Chapter 10 - Functions
+#include "LoxClass.cpp"    // Chapter 12 - Classes
+#include "LoxInstance.cpp" // Chapter 12 - Classes
+
 // Chapter 7 - Evaluating Expressions
 Interpreter interpreter{};
 

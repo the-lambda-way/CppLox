@@ -1,31 +1,20 @@
 #pragma once
 
+#include <any>
 #include <map>
 #include <memory>
-#include "LoxClass.h"
+#include <string>
 
-LoxInstance::LoxInstance(std::shared_ptr<LoxClass> klass)
-  : klass{std::move(klass)}
-{}
+class LoxClass;
+class Token;
 
-std::any LoxInstance::get(const Token& name) {
-  auto elem = fields.find(name.lexeme);
-  if (elem != fields.end()) {
-    return elem->second;
-  }
+class LoxInstance: public std::enable_shared_from_this<LoxInstance> {
+  std::shared_ptr<LoxClass> klass;
+  std::map<std::string, std::any> fields;
 
-  std::shared_ptr<LoxFunction> method =
-      klass->findMethod(name.lexeme);
-  if (method != nullptr) return method->bind(shared_from_this());
-
-  throw RuntimeError(name,
-      "Undefined property '" + name.lexeme + "'.");
-}
-
-void LoxInstance::set(const Token& name, std::any value) {
-  fields[name.lexeme] = std::move(value);
-}
-
-std::string LoxInstance::toString() {
-  return klass->name + " instance";
-}
+public:
+  LoxInstance(std::shared_ptr<LoxClass> klass);
+  std::any get(const Token& name);
+  void set(const Token& name, std::any value);
+  std::string toString();
+};

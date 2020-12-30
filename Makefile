@@ -136,14 +136,14 @@ test-classes4:
 test-classes5:
 	@make jlox >/dev/null
 	@echo "testing jlox with test-classes5.lox ..."
-	@./jlox test-classes5.lox | diff -u --color test-classes5.lox.expected -;
+	@./jlox test-classes5.lox 2>&1 | diff -u --color test-classes5.lox.expected -;
 
 
 .PHONY: test-classes6
 test-classes6:
 	@make jlox >/dev/null
 	@echo "testing jlox with test-classes6.lox ..."
-	@./jlox test-classes6.lox | diff -u --color test-classes6.lox.expected -;
+	@./jlox test-classes6.lox 2>&1 | diff -u --color test-classes6.lox.expected -;
 
 
 generate_ast: GenerateAst.o
