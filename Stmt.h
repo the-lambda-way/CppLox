@@ -45,8 +45,8 @@ struct Block: Stmt, public std::enable_shared_from_this<Block> {
 };
 
 struct Class: Stmt, public std::enable_shared_from_this<Class> {
-  Class(Token name, std::vector<std::shared_ptr<Function>> methods)
-    : name{std::move(name)}, methods{std::move(methods)}
+  Class(Token name, std::shared_ptr<Variable> superclass, std::vector<std::shared_ptr<Function>> methods)
+    : name{std::move(name)}, superclass{std::move(superclass)}, methods{std::move(methods)}
   {}
 
   std::any accept(StmtVisitor& visitor) override {
@@ -54,6 +54,7 @@ struct Class: Stmt, public std::enable_shared_from_this<Class> {
   }
 
   const Token name;
+  const std::shared_ptr<Variable> superclass;
   const std::vector<std::shared_ptr<Function>> methods;
 };
 

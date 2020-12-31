@@ -132,7 +132,23 @@ public:
 
   // Chapter 12 - Classes
   std::any visitClassStmt(std::shared_ptr<Class> stmt) override {
+    // Chapter 13 - Inheritance
+    std::any superclass;
+    if (stmt->superclass != nullptr) {
+      superclass = evaluate(stmt->superclass);
+      if (superclass.type() != typeid(std::shared_ptr<LoxClass>)) {
+        throw RuntimeError(stmt->superclass->name,
+            "Superclass must be a class.");
+      }
+    }
+
     environment->define(stmt->name.lexeme, nullptr);
+
+    // Chapter 13 - Inheritance
+    if (stmt->superclass != nullptr) {
+      environment = std::make_shared<Environment>(environment);
+      environment->define("super", superclass);
+    }
 
     // auto klass = std::make_shared<LoxClass>(stmt->name.lexeme);
 
@@ -144,8 +160,23 @@ public:
       methods[method->name.lexeme] = function;
     }
 
+    // auto klass = std::make_shared<LoxClass>(stmt->name.lexeme,
+    //                                         methods);
+
+    // Chapter 13 - Inheritance
+    std::shared_ptr<LoxClass> superklass = nullptr;
+    if (superclass.type() == typeid(std::shared_ptr<LoxClass>)) {
+      superklass = std::any_cast<
+          std::shared_ptr<LoxClass>>(superclass);
+    }
     auto klass = std::make_shared<LoxClass>(stmt->name.lexeme,
-                                            methods);
+        superklass, methods);
+
+    // Chapter 13 - Inheritance
+    if (superklass != nullptr) {
+      environment = environment->enclosing;
+    }
+
     environment->assign(stmt->name, std::move(klass));
     return {};
   }
@@ -385,6 +416,27 @@ public:
 
     // Unreachable.
     return nullptr;
+  }
+
+  // Chapter 13 - Inheritance
+  std::any visitSuperExpr(std::shared_ptr<Super> expr) override {
+    int distance = locals[expr];
+    auto superclass = std::any_cast<
+        std::shared_ptr<LoxClass>>(environment->getAt(
+            distance, "super"));
+
+    auto object = std::any_cast<std::shared_ptr<LoxInstance>>(
+        environment->getAt(distance - 1, "this"));
+
+    std::shared_ptr<LoxFunction> method = superclass->findMethod(
+        expr->method.lexeme);
+
+    if (method == nullptr) {
+      throw RuntimeError(expr->method,
+          "Undefined property '" + expr->method.lexeme + "'.");
+    }
+
+    return method->bind(object);
   }
 
   // Chapter 8 - Statements and State

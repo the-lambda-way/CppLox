@@ -146,6 +146,34 @@ test-classes6:
 	@./jlox test-classes6.lox 2>&1 | diff -u --color test-classes6.lox.expected -;
 
 
+.PHONY: test-inheritance
+test-inheritance:
+	@make jlox >/dev/null
+	@echo "testing jlox with test-inheritance.lox ..."
+	@./jlox test-inheritance.lox | diff -u --color test-inheritance.lox.expected -;
+
+
+.PHONY: test-inheritance2
+test-inheritance2:
+	@make jlox >/dev/null
+	@echo "testing jlox with test-inheritance2.lox ..."
+	@./jlox test-inheritance2.lox | diff -u --color test-inheritance2.lox.expected -;
+
+
+.PHONY: test-inheritance3
+test-inheritance3:
+	@make jlox >/dev/null
+	@echo "testing jlox with test-inheritance3.lox ..."
+	@./jlox test-inheritance3.lox 2>&1 | diff -u --color test-inheritance3.lox.expected -;
+
+
+.PHONY: test-inheritance4
+test-inheritance4:
+	@make jlox >/dev/null
+	@echo "testing jlox with test-inheritance4.lox ..."
+	@./jlox test-inheritance4.lox 2>&1 | diff -u --color test-inheritance4.lox.expected -;
+
+
 generate_ast: GenerateAst.o
 	@$(COMPILE) $< -o $@
 

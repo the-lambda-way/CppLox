@@ -29,6 +29,8 @@ Tests can be run with a variant of `make test-X` to pass test-X.lox as input to 
 | test-classes2     | test-classes2.lox     | test-classes2.lox.expected     | 12      |
 | test-classes3     | test-classes3.lox     | test-classes3.lox.expected     | 12      |
 | test-classes4     | test-classes4.lox     | test-classes4.lox.expected     | 12      |
+| test-inheritance  | test-inheritance.lox  | test-inheritance.lox.expected  | 13      |
+| test-inheritance2 | test-inheritance2.lox | test-inheritance2.lox.expected | 13      |
 
 The following diff the contents of stderr rather than of stdout.
 
@@ -39,6 +41,8 @@ The following diff the contents of stderr rather than of stdout.
 | test-resolving4   | test-resolving4.lox   | test-resolving4.lox.expected   | 11      |
 | test-classes5     | test-classes5.lox     | test-classes5.lox.expected     | 12      |
 | test-classes6     | test-classes6.lox     | test-classes6.lox.expected     | 12      |
+| test-inheritance3 | test-inheritance3.lox | test-inheritance3.lox.expected | 13      |
+| test-inheritance4 | test-inheritance4.lox | test-inheritance4.lox.expected | 13      |
 
 Run `make generate_ast` to compile GenerateAst.cpp and produce Expr.h and Stmt.h.
 
@@ -47,7 +51,7 @@ Run `make ast_printer` to compile AstPrinterDriver.cpp.
 
 # Current Progress
 
-Finished through Chapter 12.
+Finished through Chapter 13.
 
 
 # License

@@ -217,6 +217,11 @@ int main(int argc, char* argv[]) {
 
     // Chapter 12 - Classes
     "Set      : Expr* object, Token name, Expr* value",
+
+    // Chapter 13 - Inheritance
+    "Super    : Token keyword, Token method",
+
+    // Chapter 12 - Classes
     "This     : Token keyword",
 
     "Unary    : Token op, Expr* right"
@@ -230,8 +235,12 @@ int main(int argc, char* argv[]) {
   defineAst(outputDir, "Stmt", {
     "Block      : std::vector<Stmt*> statements",
 
+    // Chapter 13 - Inheritance
+    "Class      : Token name, Variable* superclass,"
+                " std::vector<Function*> methods",
+
     // Chapter 12 - Classes
-    "Class      : Token name, std::vector<Function*> methods",
+    // "Class      : Token name, std::vector<Function*> methods",
 
     "Expression : Expr* expression",
 

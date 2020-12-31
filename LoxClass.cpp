@@ -4,9 +4,17 @@
 //   : name{std::move(name)}
 // {}
 
+// LoxClass::LoxClass(std::string name,
+//     std::map<std::string, std::shared_ptr<LoxFunction>> methods)
+//   : name{std::move(name)}, methods{std::move(methods)}
+// {}
+
+// Chapter 13 - Inheritance
 LoxClass::LoxClass(std::string name,
+    std::shared_ptr<LoxClass> superclass,
     std::map<std::string, std::shared_ptr<LoxFunction>> methods)
-  : name{std::move(name)}, methods{std::move(methods)}
+  : superclass{superclass}, name{std::move(name)},
+  methods{std::move(methods)}
 {}
 
 std::shared_ptr<LoxFunction> LoxClass::findMethod(
@@ -14,6 +22,11 @@ std::shared_ptr<LoxFunction> LoxClass::findMethod(
   auto elem = methods.find(name);
   if (elem != methods.end()) {
       return elem->second;
+  }
+
+  // Chapter 13 - Inheritance
+  if (superclass != nullptr) {
+    return superclass->findMethod(name);
   }
 
   return nullptr;

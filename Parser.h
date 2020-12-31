@@ -75,6 +75,14 @@ private:
   // Chapter 12 - Classes
   std::shared_ptr<Stmt> classDeclaration() {
     Token name = consume(IDENTIFIER, "Expect class name.");
+
+    // Chapter 13 - Inheritance
+    std::shared_ptr<Variable> superclass = nullptr;
+    if (match(LESS)) {
+      consume(IDENTIFIER, "Expect superclass name.");
+      superclass = std::make_shared<Variable>(previous());
+    }
+
     consume(LEFT_BRACE, "Expect '{' before class body.");
 
     std::vector<std::shared_ptr<Function>> methods;
@@ -84,7 +92,12 @@ private:
 
     consume(RIGHT_BRACE, "Expect '}' after class body");
 
+    // return std::make_shared<Class>(std::move(name),
+    //                                std::move(methods));
+
+    // Chapter 13 - Inheritance
     return std::make_shared<Class>(std::move(name),
+                                   superclass,
                                    std::move(methods));
   }
 
@@ -412,6 +425,16 @@ private:
 
     if (match(NUMBER, STRING)) {
       return std::make_shared<Literal>(previous().literal);
+    }
+
+    // Chapter 13 - Inheritance
+    if (match(SUPER)) {
+      Token keyword = previous();
+      consume(DOT, "Expect '.' after 'super'.");
+      Token method = consume(IDENTIFIER,
+          "Expect superclass method name.");
+      return std::make_shared<Super>(std::move(keyword),
+                                     std::move(method));
     }
 
     // Chapter 12 - Classes

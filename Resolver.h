@@ -31,6 +31,7 @@ private:
   enum class ClassType {
     NONE,
     CLASS
+    , SUBCLASS
   };
 
   ClassType currentClass = ClassType::NONE;
@@ -57,6 +58,24 @@ public:
     declare(stmt->name);
     define(stmt->name);
 
+    // Chapter 13 - Inheriance
+    if (stmt->superclass != nullptr &&
+        stmt->name.lexeme == stmt->superclass->name.lexeme) {
+      error(stmt->superclass->name,
+          "A class can't inherit from itself.");
+    }
+
+    if (stmt->superclass != nullptr) {
+      currentClass = ClassType::SUBCLASS;
+      resolve(stmt->superclass);
+    }
+
+    // Chapter 13 - Inheritance
+    if (stmt->superclass != nullptr) {
+      beginScope();
+      scopes.back()["super"] = true;
+    }
+
     beginScope();
     scopes.back()["this"] = true;
 
@@ -70,6 +89,9 @@ public:
     }
 
     endScope();
+
+    // Chapter 13 - Inheritance
+    if (stmt->superclass != nullptr) endScope();
 
     currentClass = enclosingClass;
     return {};
@@ -187,6 +209,21 @@ public:
     return {};
   }
 
+  // Chapter 13 - Inheritance
+  std::any visitSuperExpr(std::shared_ptr<Super> expr) override {
+    if (currentClass == ClassType::NONE) {
+      error(expr->keyword,
+          "Can't user 'super' outside of a class.");
+    } else if (currentClass != ClassType::SUBCLASS) {
+      error(expr->keyword,
+          "Can't user 'super' in a class with no superclass.");
+    }
+
+    resolveLocal(expr, expr->keyword);
+    return {};
+  }
+
+  // Chapter 12 - Classes
   std::any visitThisExpr(std::shared_ptr<This> expr) override {
     if (currentClass == ClassType::NONE) {
       error(expr->keyword,
