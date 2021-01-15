@@ -71,6 +71,8 @@ The following tests diff the contents of stderr rather than of stdout.
 | test-inheritance6 | test-inheritance6.lox | test-inheritance6.lox.expected | 13       |
 | test-inheritance7 | test-inheritance7.lox | test-inheritance7.lox.expected | 13       |
 
+Starting in chapter 8 run `make test-all` to run all tests for the chapter. This might be useful if you are modifying the code.
+
 
 # License
 
