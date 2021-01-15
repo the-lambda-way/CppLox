@@ -1,0 +1,3 @@
+var NotAClass = "I am totally not a class";
+
+class Subclass < NotAClass {} // ?!

@@ -1,0 +1,17 @@
+LEFT_PAREN ( nil
+LEFT_PAREN ( nil
+RIGHT_PAREN ) nil
+RIGHT_PAREN ) nil
+LEFT_BRACE { nil
+RIGHT_BRACE } nil
+BANG ! nil
+STAR * nil
+PLUS + nil
+MINUS - nil
+SLASH / nil
+EQUAL = nil
+LESS < nil
+GREATER > nil
+LESS_EQUAL <= nil
+EQUAL_EQUAL == nil
+END_OF_FILE  nil
