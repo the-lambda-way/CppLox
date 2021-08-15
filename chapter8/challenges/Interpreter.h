@@ -175,7 +175,11 @@ public:
 
   std::any visitVariableExpr(
       std::shared_ptr<Variable> expr) override {
-    return environment->get(expr->name);
+      std::any value = environment->get(expr->name);
+      if (value.type() == typeid(nullptr)) {
+          throw RuntimeError{expr->name, "Variable not initialized."};
+      }
+      return value;
   }
 
 private:
