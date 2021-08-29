@@ -12,21 +12,18 @@ std::vector<std::string_view> split(std::string_view str,
                                     std::string_view delim) {
   std::vector<std::string_view> out;
 
-  std::string_view::size_type start;
-  std::string_view::size_type end = 0;
+  std::string_view::size_type start = 0;
+  std::string_view::size_type end   = str.find(delim);
 
-  while (true) {
-    start = end;
-    end = str.find(delim, start);
-
+  while (end != std::string_view::npos)
+  {
     out.push_back(str.substr(start, end - start));
 
-    // If end == std::string_view::npos, we need to break before
-    // adding delim.length() so that it doesn't cycle around.
-    if (end >= str.length()) break;
-
-    end += delim.length();
+    start = end + delim.length();
+    end   = str.find(delim, start);
   }
+
+  out.push_back(str.substr(start, end - start));
 
   return out;
 }
@@ -132,7 +129,7 @@ void defineType(
   // Visitor pattern.
   writer << "\n"
             "  std::any accept(" << baseName << "Visitor& visitor)"
-                "override {\n"
+                " override {\n"
             "    return visitor.visit" << className << baseName <<
                 "(shared_from_this());\n"
             "  }\n";

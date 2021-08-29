@@ -30,7 +30,7 @@ struct Block: Stmt, public std::enable_shared_from_this<Block> {
     : statements{std::move(statements)}
   {}
 
-  std::any accept(StmtVisitor& visitor)override {
+  std::any accept(StmtVisitor& visitor) override {
     return visitor.visitBlockStmt(shared_from_this());
   }
 
@@ -42,7 +42,7 @@ struct Expression: Stmt, public std::enable_shared_from_this<Expression> {
     : expression{std::move(expression)}
   {}
 
-  std::any accept(StmtVisitor& visitor)override {
+  std::any accept(StmtVisitor& visitor) override {
     return visitor.visitExpressionStmt(shared_from_this());
   }
 
@@ -54,7 +54,7 @@ struct Print: Stmt, public std::enable_shared_from_this<Print> {
     : expression{std::move(expression)}
   {}
 
-  std::any accept(StmtVisitor& visitor)override {
+  std::any accept(StmtVisitor& visitor) override {
     return visitor.visitPrintStmt(shared_from_this());
   }
 
@@ -66,7 +66,7 @@ struct Var: Stmt, public std::enable_shared_from_this<Var> {
     : name{std::move(name)}, initializer{std::move(initializer)}
   {}
 
-  std::any accept(StmtVisitor& visitor)override {
+  std::any accept(StmtVisitor& visitor) override {
     return visitor.visitVarStmt(shared_from_this());
   }
 

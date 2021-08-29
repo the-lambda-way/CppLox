@@ -38,7 +38,7 @@ struct Block: Stmt, public std::enable_shared_from_this<Block> {
     : statements{std::move(statements)}
   {}
 
-  std::any accept(StmtVisitor& visitor)override {
+  std::any accept(StmtVisitor& visitor) override {
     return visitor.visitBlockStmt(shared_from_this());
   }
 
@@ -50,7 +50,7 @@ struct Expression: Stmt, public std::enable_shared_from_this<Expression> {
     : expression{std::move(expression)}
   {}
 
-  std::any accept(StmtVisitor& visitor)override {
+  std::any accept(StmtVisitor& visitor) override {
     return visitor.visitExpressionStmt(shared_from_this());
   }
 
@@ -62,7 +62,7 @@ struct Function: Stmt, public std::enable_shared_from_this<Function> {
     : name{std::move(name)}, params{std::move(params)}, body{std::move(body)}
   {}
 
-  std::any accept(StmtVisitor& visitor)override {
+  std::any accept(StmtVisitor& visitor) override {
     return visitor.visitFunctionStmt(shared_from_this());
   }
 
@@ -76,7 +76,7 @@ struct If: Stmt, public std::enable_shared_from_this<If> {
     : condition{std::move(condition)}, thenBranch{std::move(thenBranch)}, elseBranch{std::move(elseBranch)}
   {}
 
-  std::any accept(StmtVisitor& visitor)override {
+  std::any accept(StmtVisitor& visitor) override {
     return visitor.visitIfStmt(shared_from_this());
   }
 
@@ -90,7 +90,7 @@ struct Print: Stmt, public std::enable_shared_from_this<Print> {
     : expression{std::move(expression)}
   {}
 
-  std::any accept(StmtVisitor& visitor)override {
+  std::any accept(StmtVisitor& visitor) override {
     return visitor.visitPrintStmt(shared_from_this());
   }
 
@@ -102,7 +102,7 @@ struct Return: Stmt, public std::enable_shared_from_this<Return> {
     : keyword{std::move(keyword)}, value{std::move(value)}
   {}
 
-  std::any accept(StmtVisitor& visitor)override {
+  std::any accept(StmtVisitor& visitor) override {
     return visitor.visitReturnStmt(shared_from_this());
   }
 
@@ -115,7 +115,7 @@ struct Var: Stmt, public std::enable_shared_from_this<Var> {
     : name{std::move(name)}, initializer{std::move(initializer)}
   {}
 
-  std::any accept(StmtVisitor& visitor)override {
+  std::any accept(StmtVisitor& visitor) override {
     return visitor.visitVarStmt(shared_from_this());
   }
 
@@ -128,7 +128,7 @@ struct While: Stmt, public std::enable_shared_from_this<While> {
     : condition{std::move(condition)}, body{std::move(body)}
   {}
 
-  std::any accept(StmtVisitor& visitor)override {
+  std::any accept(StmtVisitor& visitor) override {
     return visitor.visitWhileStmt(shared_from_this());
   }
 
