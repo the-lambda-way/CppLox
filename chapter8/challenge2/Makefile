@@ -41,20 +41,34 @@ $(1):
 endef
 
 
+define make_test_error
+.PHONY: $(1)
+$(1):
+	@make jlox >/dev/null
+	@echo "testing jlox with $(1).lox ..."
+	@./jlox tests/$(1).lox 2>&1 | diff -u --color tests/$(1).lox.expected -;
+endef
+
+
 TESTS = \
 test-statements \
 test-statements2 \
-test-statements3 \
 test-statements4 \
 test-statements5 \
 test-statements6 \
 
 
+TEST_ERRORS = \
+test-challenge2 \
+test-statements3 \
+
+
 $(foreach test, $(TESTS), $(eval $(call make_test,$(test))))
+$(foreach test, $(TEST_ERRORS), $(eval $(call make_test_error,$(test))))
 
 
 .PHONY: test-all
 test-all:
-	@for test in $(TESTS); do \
+	@for test in $(TESTS) $(TEST_ERRORS); do \
 		make -s $$test; \
 	done
