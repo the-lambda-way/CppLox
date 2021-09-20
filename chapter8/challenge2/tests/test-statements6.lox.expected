@@ -1,0 +1,9 @@
+inner a
+outer b
+global c
+outer a
+outer b
+global c
+global a
+global b
+global c

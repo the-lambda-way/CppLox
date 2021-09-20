@@ -12,6 +12,11 @@ This project is meant to be an educational aid, so I encourage anyone to point o
 Each chapter has its own folder which contains the state of the code as it exists at the end of that chapter, as well as all the machinery to build and run it. In a few cases, early code within a chapter gets modified by later code in the same chapter; in these cases both versions are present with the earlier commented out.
 
 
+# Challenges
+
+Some challenges have been added to their chapter's folder in a subfolder *challenge#*, where # is the challenge number. The challenges contain a complete copy of the chapter's code with the appropriate changes made, so they can be run independently. All tests are included as well to ensure that no new bugs are introduced. New tests covering the challenge are named test-challenge#.lox.
+
+
 # Building
 
 Run `make` or `make jlox` to compile the program.
@@ -72,6 +77,13 @@ The following tests diff the contents of stderr rather than of stdout.
 | test-inheritance7 | test-inheritance7.lox | test-inheritance7.lox.expected | 13       |
 
 Starting in chapter 8 run `make test-all` to run all tests for the chapter. This might be useful if you are modifying the code.
+
+The following tests cover challenges or changes they introduce and are found in the challenge's *tests* subfolder.
+
+| Command           | Input                 | Expected                       | Chapter | Stream |
+| ----------------- | --------------------- | ------------------------------ | ------- | ------ |
+| test-challenge2   | test-challenge2.lox   | test-challenge2.lox.expected   | 8       | stderr |
+| test-statement3   | test-statements3.lox  | test-statements3.lox.expected  | 8       | stderr |
 
 
 # License
