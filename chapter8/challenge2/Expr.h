@@ -33,7 +33,7 @@ struct Assign: Expr, public std::enable_shared_from_this<Assign> {
     : name{std::move(name)}, value{std::move(value)}
   {}
 
-  std::any accept(ExprVisitor& visitor)override {
+  std::any accept(ExprVisitor& visitor) override {
     return visitor.visitAssignExpr(shared_from_this());
   }
 
@@ -46,7 +46,7 @@ struct Binary: Expr, public std::enable_shared_from_this<Binary> {
     : left{std::move(left)}, op{std::move(op)}, right{std::move(right)}
   {}
 
-  std::any accept(ExprVisitor& visitor)override {
+  std::any accept(ExprVisitor& visitor) override {
     return visitor.visitBinaryExpr(shared_from_this());
   }
 
@@ -60,7 +60,7 @@ struct Grouping: Expr, public std::enable_shared_from_this<Grouping> {
     : expression{std::move(expression)}
   {}
 
-  std::any accept(ExprVisitor& visitor)override {
+  std::any accept(ExprVisitor& visitor) override {
     return visitor.visitGroupingExpr(shared_from_this());
   }
 
@@ -72,7 +72,7 @@ struct Literal: Expr, public std::enable_shared_from_this<Literal> {
     : value{std::move(value)}
   {}
 
-  std::any accept(ExprVisitor& visitor)override {
+  std::any accept(ExprVisitor& visitor) override {
     return visitor.visitLiteralExpr(shared_from_this());
   }
 
@@ -84,7 +84,7 @@ struct Unary: Expr, public std::enable_shared_from_this<Unary> {
     : op{std::move(op)}, right{std::move(right)}
   {}
 
-  std::any accept(ExprVisitor& visitor)override {
+  std::any accept(ExprVisitor& visitor) override {
     return visitor.visitUnaryExpr(shared_from_this());
   }
 
@@ -97,7 +97,7 @@ struct Variable: Expr, public std::enable_shared_from_this<Variable> {
     : name{std::move(name)}
   {}
 
-  std::any accept(ExprVisitor& visitor)override {
+  std::any accept(ExprVisitor& visitor) override {
     return visitor.visitVariableExpr(shared_from_this());
   }
 
