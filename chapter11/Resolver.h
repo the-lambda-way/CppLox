@@ -187,7 +187,7 @@ private:
     std::map<std::string, bool>& scope = scopes.back();
     if (scope.find(name.lexeme) != scope.end()) {
       error(name,
-          "Already variable with this name in this scope.");
+          "Already a variable with this name in this scope.");
     }
 
     scope[name.lexeme] = false;
