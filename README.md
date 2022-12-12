@@ -1,6 +1,6 @@
 # CppLox
 
-An implementation of *jlox* from Part II of [Crafting Interpreters](https://www.craftinginterpreters.com/) written in C++17. Designed to be able to follow along with the book, replacing the inline Java code.
+A pedagogical implementation of *jlox* from Part II of [Crafting Interpreters](https://www.craftinginterpreters.com/) written in C++17. Designed to be able to follow along with the book, replacing the inline Java code.
 
 *Crafting Interpreters* is a user-friendly, free, online book which teaches you how to create a programming language from scratch. *jlox* is the book's implementation of the book's language *Lox* using a tree-walking interpreter.
 
@@ -12,7 +12,7 @@ This project is meant to be an educational aid, so I encourage anyone to point o
 Each chapter has its own folder which contains the state of the code as it exists at the end of that chapter, as well as all the machinery to build and run it. In a few cases, early code within a chapter gets modified by later code in the same chapter; in these cases both versions are present with the earlier commented out.
 
 
-# Challenges
+# Chapter Challenges
 
 Some challenges have been added to their chapter's folder in a subfolder *challenge#*, where # is the challenge number. The challenges contain a complete copy of the chapter's code with the appropriate changes made, so they can be run independently. All tests are included as well to ensure that no new bugs are introduced. New tests covering the challenge are named test-challenge#.lox.
 
